@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   fetchProjectById,
   fetchTasks,
+  fetchTruckById,
   updateNotes,
   createTask,
   updateTask,
@@ -23,6 +24,7 @@ const CHECKLIST_ITEMS = [
 const ProjectDetails = () => {
   const { id } = useParams();
   const [project, setProject] = useState(null);
+  const [truck, setTruck] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [newTaskName, setNewTaskName] = useState("");
   const [newField, setNewField] = useState({ name: "", value: "" });
@@ -33,6 +35,11 @@ const ProjectDetails = () => {
       try {
         const projectData = await fetchProjectById(id);
         setProject(projectData);
+
+        if (projectData.truckId) {
+          const truckData = await fetchTruckById(projectData.truckId);
+          setTruck(truckData);
+        }
 
         const taskData = await fetchTasks(id);
         setTasks(taskData);
@@ -138,38 +145,30 @@ const ProjectDetails = () => {
         <h2>Project Information</h2>
         <ul>
           <li>
-            <strong>Serial Number:</strong>{" "}
-            {project.serialNumber || "Not Provided"}
+            <strong>Serial Number:</strong> {project.serialNumber || "-"}
           </li>
           <li>
-            <strong>Customer Name:</strong>{" "}
-            {project.customerId?.name || "Not Provided"}
+            <strong>Customer Name:</strong> {project.customerId?.name || "-"}
           </li>
           <li>
-            <strong>Customer Email:</strong>{" "}
-            {project.customerId?.email || "Not Provided"}
+            <strong>Customer Email:</strong> {project.customerId?.email || "-"}
           </li>
           <li>
-            <strong>Customer Phone:</strong>{" "}
-            {project.customerId?.phone || "Not Provided"}
+            <strong>Customer Phone:</strong> {project.customerId?.phone || "-"}
           </li>
           <li>
             <strong>Customer Address:</strong>{" "}
-            {project.customerId?.address || "Not Provided"}
+            {project.customerId?.address || "-"}
           </li>
           <li>
-            <strong>Truck Model:</strong> {project.truckModel || "Not Provided"}
+            <strong>Truck Model:</strong> {truck?.model || "-"}
           </li>
           <li>
-            <strong>Weight:</strong> {project.weight || "Not Provided"}
-          </li>
-          <li>
-            <strong>Phone Number:</strong>{" "}
-            {project.customerId?.phone || "Not Provided"}
+            <strong>Weight Capacity:</strong> {truck?.weightCapacity || "-"} kg
           </li>
           {project.dynamicFields?.map((field, index) => (
             <li key={index}>
-              <strong>{field.name}:</strong> {field.value || "Not Provided"}
+              <strong>{field.name}:</strong> {field.value || "-"}
             </li>
           ))}
         </ul>

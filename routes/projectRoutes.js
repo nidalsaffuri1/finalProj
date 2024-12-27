@@ -1,5 +1,6 @@
 const express = require("express");
 const Project = require("../models/project");
+const Truck = require("../models/truck");
 const Customer = require("../models/customer");
 const router = express.Router();
 
@@ -81,8 +82,8 @@ router.post("/", async (req, res) => {
       customerPhone,
       customerAddress,
       truckModel,
-      weight,
-      phoneNumber,
+      truckRegistrationNumber,
+      truckWeightCapacity,
       notes,
       dynamicFields = [],
     } = req.body;
@@ -91,6 +92,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Serial Number is required." });
     }
 
+    // Step 1: Find or create the customer
     let customer = await Customer.findOne({ name: customerName });
     if (!customer) {
       customer = new Customer({
@@ -102,13 +104,26 @@ router.post("/", async (req, res) => {
       customer = await customer.save();
     }
 
+    // Step 2: Find or create the truck
+    let truck = await Truck.findOne({
+      registrationNumber: truckRegistrationNumber,
+    });
+    if (!truck) {
+      truck = new Truck({
+        model: truckModel,
+        registrationNumber: truckRegistrationNumber,
+        weightCapacity: truckWeightCapacity,
+        owner: customer._id, // Link truck to the customer
+      });
+      truck = await truck.save();
+    }
+
+    // Step 3: Create the project with truckId
     const project = new Project({
       serialNumber,
-      truckModel,
-      weight,
-      phoneNumber,
-      notes,
       customerId: customer._id,
+      truckId: truck._id, // Link the truck to the project
+      notes,
       dynamicFields,
     });
 

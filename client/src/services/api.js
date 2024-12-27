@@ -168,6 +168,18 @@ export const updateNotes = async (id, notes) => {
   }
 };
 
+export const fetchTruckById = async (truckId) => {
+  try {
+    const response = await fetch(`http://localhost:5000/trucks/${truckId}`);
+    if (!response.ok) throw new Error("Failed to fetch truck details");
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching truck:", error.message);
+    throw error;
+  }
+};
+
 export const fetchTasks = async (projectId) => {
   try {
     console.log("Fetching tasks for projectId:", projectId);
