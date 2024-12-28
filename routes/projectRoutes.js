@@ -2,6 +2,7 @@ const express = require("express");
 const Project = require("../models/project");
 const Truck = require("../models/truck");
 const Customer = require("../models/customer");
+const Product = require("../models/product");
 const router = express.Router();
 
 // Fetch all projects (with pagination, sorting, and search)
@@ -51,19 +52,16 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Fetch a single project by ID (This is the missing route)
+// Fetch a single project by ID
 router.get("/:id", async (req, res) => {
   try {
-    console.log("Fetching project by ID:", req.params.id); // Debugging log
-    const project = await Project.findById(req.params.id).populate(
-      "customerId",
-      "name email phone address"
-    );
+    const project = await Project.findById(req.params.id)
+      .populate("customerId", "name email phone address")
+      .populate("checklist.productId", "name unitPrice"); // Ensure proper population
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
-    console.log("Fetched Project Details:", project); // Debugging log
 
     res.json(project);
   } catch (err) {
@@ -72,7 +70,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create a new project
+// Create a new project (Prevent Duplicate Checklist)
 router.post("/", async (req, res) => {
   try {
     const {
@@ -113,18 +111,30 @@ router.post("/", async (req, res) => {
         model: truckModel,
         registrationNumber: truckRegistrationNumber,
         weightCapacity: truckWeightCapacity,
-        owner: customer._id, // Link truck to the customer
+        owner: customer._id,
       });
       truck = await truck.save();
     }
 
-    // Step 3: Create the project with truckId
+    // Step 3: Fetch existing products ONCE
+    const products = await Product.find();
+
+    // Step 4: Map products to checklist format (ONLY ADD if not already present)
+    const checklist = products.map((product) => ({
+      productId: product._id,
+      productName: product.name,
+      price: product.unitPrice,
+      checked: false,
+    }));
+
+    // Step 5: Create the project with the checklist
     const project = new Project({
       serialNumber,
       customerId: customer._id,
-      truckId: truck._id, // Link the truck to the project
+      truckId: truck._id,
       notes,
       dynamicFields,
+      checklist, // Add checklist ONCE
     });
 
     const savedProject = await project.save();
@@ -138,20 +148,18 @@ router.post("/", async (req, res) => {
 // Update a project
 router.put("/:id", async (req, res) => {
   try {
-    const {
-      serialNumber,
-      truckModel,
-      weight,
-      phoneNumber,
-      notes,
-      dynamicFields,
-    } = req.body;
+    const { checklist, ...updateData } = req.body;
 
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
-      { serialNumber, truckModel, weight, phoneNumber, notes, dynamicFields },
+      {
+        ...updateData,
+        checklist,
+      },
       { new: true }
-    );
+    )
+      .populate("checklist.productId", "name unitPrice")
+      .populate("customerId", "name email phone address"); // <-- Re-populate customer
 
     if (!updatedProject) {
       return res.status(404).json({ message: "Project not found" });

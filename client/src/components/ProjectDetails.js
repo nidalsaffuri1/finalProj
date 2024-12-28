@@ -13,13 +13,13 @@ import {
 import { toast } from "react-toastify";
 import "../ProjectDetails.css";
 
-const CHECKLIST_ITEMS = [
-  "Engine Oil",
-  "Brake Pads",
-  "Tires",
-  "Battery",
-  "Coolant",
-]; // Example checklist
+// const CHECKLIST_ITEMS = [
+//   "Engine Oil",
+//   "Brake Pads",
+//   "Tires",
+//   "Battery",
+//   "Coolant",
+// ]; // Example checklist
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -28,7 +28,7 @@ const ProjectDetails = () => {
   const [tasks, setTasks] = useState([]);
   const [newTaskName, setNewTaskName] = useState("");
   const [newField, setNewField] = useState({ name: "", value: "" });
-  const [checklist, setChecklist] = useState({});
+  const [checklist, setChecklist] = useState([]);
 
   useEffect(() => {
     const loadProjectDetails = async () => {
@@ -44,14 +44,7 @@ const ProjectDetails = () => {
         const taskData = await fetchTasks(id);
         setTasks(taskData);
 
-        // Initialize checklist
-        const initialChecklist =
-          projectData.checklist ||
-          CHECKLIST_ITEMS.reduce(
-            (acc, item) => ({ ...acc, [item]: false }),
-            {}
-          );
-        setChecklist(initialChecklist);
+        setChecklist(projectData.checklist || []);
       } catch (error) {
         console.error("Error loading project details:", error.message);
         toast.error("Failed to load project details.");
@@ -60,6 +53,34 @@ const ProjectDetails = () => {
 
     loadProjectDetails();
   }, [id]);
+
+  const handleChecklistToggle = async (productId) => {
+    const updatedChecklist = checklist.map((item) =>
+      (item.productId._id || item.productId) === productId
+        ? { ...item, checked: !item.checked }
+        : item
+    );
+
+    try {
+      const updatedProject = await updateProject(project._id, {
+        ...project,
+        checklist: updatedChecklist,
+      });
+
+      // Ensure customer information is not overwritten
+      setProject((prev) => ({
+        ...updatedProject,
+        customerId: prev.customerId, // Preserve existing customer data
+      }));
+
+      toast.success("Checklist updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update checklist.");
+      console.error("Error updating checklist:", error);
+    }
+
+    setChecklist(updatedChecklist); // Update the state to reflect the changes
+  };
 
   const handleAddTask = async () => {
     if (!newTaskName.trim()) return toast.error("Task name cannot be empty.");
@@ -119,10 +140,6 @@ const ProjectDetails = () => {
       console.error("Failed to add information:", error.message);
       toast.error("Failed to add information.");
     }
-  };
-
-  const handleChecklistToggle = (item) => {
-    setChecklist((prev) => ({ ...prev, [item]: !prev[item] }));
   };
 
   const handleSaveNotes = async () => {
@@ -227,18 +244,31 @@ const ProjectDetails = () => {
         <h2>Checklist</h2>
         <div className="checklist">
           <ul>
-            {Object.keys(checklist).map((item) => (
-              <li key={item}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={checklist[item] || false}
-                    onChange={() => handleChecklistToggle(item)}
-                  />
-                  {item}
-                </label>
-              </li>
-            ))}
+            {checklist.length > 0 ? (
+              checklist.map((item) => (
+                <li key={item._id || item.productId?._id || item.productName}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() =>
+                        item.productId
+                          ? handleChecklistToggle(
+                              item.productId._id || item.productId
+                            )
+                          : console.error("Missing productId for item", item)
+                      }
+                    />
+                    {item.productId?.name ||
+                      item.productName ||
+                      "Unnamed Product"}{" "}
+                    - ${item.productId?.unitPrice || item.price || "0.00"}
+                  </label>
+                </li>
+              ))
+            ) : (
+              <p>No products in checklist.</p>
+            )}
           </ul>
         </div>
 
