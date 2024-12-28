@@ -133,7 +133,12 @@ const ProjectDetails = () => {
         dynamicFields: updatedFields,
       });
 
-      setProject(updatedProject);
+      // Preserve customer data
+      setProject((prev) => ({
+        ...updatedProject,
+        customerId: prev.customerId,
+      }));
+
       setNewField({ name: "", value: "" });
       toast.success("Information added successfully!");
     } catch (error) {
@@ -143,14 +148,33 @@ const ProjectDetails = () => {
   };
 
   const handleSaveNotes = async () => {
+    if (!project.notes.trim()) {
+      return toast.error("Notes cannot be empty.");
+    }
+
     try {
       const updatedProject = await updateNotes(project._id, project.notes);
-      setProject(updatedProject);
+
+      // Preserve customer data and other project details
+      setProject((prev) => ({
+        ...prev,
+        notes: updatedProject.notes, // Update only the notes
+      }));
+
       toast.success("Notes updated successfully!");
     } catch (error) {
       console.error("Error saving notes:", error);
       toast.error("Failed to save notes.");
     }
+  };
+
+  const calculateTotal = () => {
+    return checklist
+      .filter((item) => item.checked)
+      .reduce(
+        (sum, item) => sum + (item.productId?.unitPrice || item.price),
+        0
+      );
   };
 
   if (!project) return <p>Loading...</p>;
@@ -270,6 +294,9 @@ const ProjectDetails = () => {
               <p>No products in checklist.</p>
             )}
           </ul>
+          <div className="total-section">
+            <strong>Total: ${calculateTotal().toFixed(2)}</strong>
+          </div>
         </div>
 
         {/* Add Information */}

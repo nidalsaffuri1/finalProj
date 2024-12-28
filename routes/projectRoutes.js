@@ -172,4 +172,29 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.put("/:id/notes", async (req, res) => {
+  try {
+    const { notes } = req.body;
+
+    if (!notes) {
+      return res.status(400).json({ error: "Notes cannot be empty." });
+    }
+
+    const updatedProject = await Project.findByIdAndUpdate(
+      req.params.id,
+      { notes },
+      { new: true }
+    ).populate("customerId", "name email phone address");
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    res.json(updatedProject);
+  } catch (err) {
+    console.error("Error updating notes:", err.message);
+    res.status(500).json({ error: "Failed to update notes" });
+  }
+});
+
 module.exports = router;

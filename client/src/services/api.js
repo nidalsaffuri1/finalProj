@@ -145,25 +145,26 @@ export const fetchCustomers = async () => {
 };
 
 // Update project notes
-export const updateNotes = async (id, notes) => {
+export const updateNotes = async (projectId, notes) => {
   try {
-    const response = await fetch(`${API_URL}/${id}/notes`, {
-      method: "PATCH",
+    const response = await fetch(`${API_URL}/${projectId}/notes`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ notes }), // Send the updated notes
+      body: JSON.stringify({ notes }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("Failed to update notes:", errorText);
       throw new Error(`Failed to update notes: ${errorText}`);
     }
 
     const data = await response.json();
-    return data; // Return the updated project
+    return data;
   } catch (error) {
-    console.error("Error updating notes:", error.message);
+    console.error("Error in updateNotes:", error.message);
     throw error;
   }
 };
