@@ -35,6 +35,7 @@ router.get("/", async (req, res) => {
 
     const projects = await Project.find(query)
       .populate("customerId", "name email phone address")
+      .populate("truckId", "model")
       .sort({ [sortBy]: sortOrder })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));

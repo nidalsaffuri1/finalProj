@@ -1,32 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
-import { fetchProjects, deleteProject } from "../services/api";
+import { fetchProjects, deleteProject } from "../../services/api";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./currentProjectss.css";
 
 const CurrentProjects = () => {
-  const [projects, setProjects] = useState([]); // Holds project data
-  const [searchQuery, setSearchQuery] = useState(""); // Search input
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(""); // Debounced search query
-  const [currentPage, setCurrentPage] = useState(1); // Current page
-  const [totalPages, setTotalPages] = useState(1); // Total pages
-  const [loading, setLoading] = useState(false); // Loading state
+  const [projects, setProjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  const searchInputRef = useRef(null); // Reference for the search input field
-  const projectsPerPage = 10; // Number of projects per page
+  const searchInputRef = useRef(null);
+  const projectsPerPage = 10;
 
-  // Debounce search query to avoid excessive API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 300); // 300ms debounce time
+    }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch projects whenever currentPage or debouncedSearchQuery changes
   useEffect(() => {
     const loadProjects = async () => {
-      console.log("Loading projects...");
       setLoading(true);
       try {
         const data = await fetchProjects(
@@ -36,7 +34,6 @@ const CurrentProjects = () => {
           "desc",
           debouncedSearchQuery
         );
-        console.log("Fetched Projects Data:", data);
 
         if (data.projects?.length) {
           setProjects(data.projects || []);
@@ -55,15 +52,12 @@ const CurrentProjects = () => {
     loadProjects();
   }, [currentPage, debouncedSearchQuery]);
 
-  // Handle delete project
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this project?")) {
       try {
         await deleteProject(id);
         setProjects((prev) => prev.filter((project) => project._id !== id));
         toast.success("Project deleted successfully!");
-
-        // If the current page is empty after deletion, go to the previous page
         if (projects.length === 1 && currentPage > 1) {
           setCurrentPage((prev) => prev - 1);
         }
@@ -74,34 +68,34 @@ const CurrentProjects = () => {
     }
   };
 
-  // Pagination controls
   const handlePreviousPage = () =>
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   const handleNextPage = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
-  // Focus the search input field after re-render
   useEffect(() => {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
-  }, [projects]); // Ensure it focuses after project updates
+  }, [projects]);
 
   return (
-    <div className="container">
+    <div className="projects-container">
       <h1>Current Projects</h1>
 
-      {/* Search Bar */}
-      <input
-        ref={searchInputRef}
-        type="text"
-        placeholder="Search by Serial Number, Customer Name, or Truck Model"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="search-bar"
-      />
+      {/* Search Bar Section */}
+      <div className="search-bar-container">
+        <input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Search projects..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="search-bar"
+        />
+      </div>
 
-      {/* Content */}
+      {/* Project Table Section */}
       {loading ? (
         <p>Loading projects...</p>
       ) : projects.length === 0 ? (
@@ -111,7 +105,7 @@ const CurrentProjects = () => {
         </p>
       ) : (
         <>
-          <table>
+          <table className="projects-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -127,18 +121,18 @@ const CurrentProjects = () => {
               {projects.map((project, index) => (
                 <tr
                   key={project._id}
-                  style={{
-                    backgroundColor: project.hasTasks
+                  className={
+                    project.hasTasks
                       ? project.isCompleted
-                        ? "lightgreen"
-                        : "lightcoral"
-                      : "white", // Neutral color for projects with no tasks
-                  }}
+                        ? "project-row completed"
+                        : "project-row in-progress"
+                      : "project-row normal"
+                  }
                 >
                   <td>{index + 1 + (currentPage - 1) * projectsPerPage}</td>
                   <td>{project.serialNumber || "Not Provided"}</td>
                   <td>{project.customerId?.name || "Unknown"}</td>
-                  <td>{project.truckModel || "Not Provided"}</td>
+                  <td>{project.truckId.model || "Not Provided"}</td>
                   <td>{new Date(project.createdAt).toLocaleDateString()}</td>
                   <td>{project.isCompleted ? "Completed" : "In Progress"}</td>
                   <td>
@@ -157,7 +151,6 @@ const CurrentProjects = () => {
             </tbody>
           </table>
 
-          {/* Pagination Controls */}
           <div className="pagination">
             <button onClick={handlePreviousPage} disabled={currentPage === 1}>
               Previous

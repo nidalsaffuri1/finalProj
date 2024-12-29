@@ -9,17 +9,9 @@ import {
   updateTask,
   deleteTask,
   updateProject,
-} from "../services/api";
+} from "../../services/api";
 import { toast } from "react-toastify";
-import "../ProjectDetails.css";
-
-// const CHECKLIST_ITEMS = [
-//   "Engine Oil",
-//   "Brake Pads",
-//   "Tires",
-//   "Battery",
-//   "Coolant",
-// ]; // Example checklist
+import "./projectDetailss.css";
 
 const ProjectDetails = () => {
   const { id } = useParams();

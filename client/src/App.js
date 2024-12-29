@@ -1,31 +1,30 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import "./styles.css"; // Import the styles
-import CreateProjectForm from "./components/CreateProjectForm";
-import CurrentProjects from "./components/CurrentProjects";
-import ProjectDetails from "./components/ProjectDetails";
+import "./style.css";
+import "./components/homePage/homePagee.css";
+import CreateProjectForm from "./components/createProjectForm/CreateProjectForm";
+import CurrentProjects from "./components/currentProjects/CurrentProjects";
+import ProjectDetails from "./components/projectDetails/ProjectDetails";
 import { ToastContainer } from "react-toastify";
 
 const HomePage = () => (
-  <div>
-    <h1>Welcome to Truck Management System</h1>
-    <div>
+  <div className="homepage-container">
+    <h1 className="homepage-title">Welcome to Truck Management System</h1>
+    <p className="homepage-subtitle">
+      Efficiently manage your trucks, tasks, and projects.
+    </p>
+
+    <div className="button-group">
       <Link to="/create-project">
-        <button>Create Project</button>
+        <button className="primary-btn">Create Project</button>
       </Link>
       <Link to="/current-projects">
-        <button>Current Projects</button>
+        <button className="secondary-btn">Current Projects</button>
       </Link>
     </div>
   </div>
 );
 
-// const CreateProject = () => (
-//   <div>
-//     <h1>Create Project Page</h1>
-//     <p>This is where the form to create a new project will go.</p>
-//   </div>
-// );
 const CreateProject = () => (
   <div>
     <CreateProjectForm /> {/* Use the form component here */}

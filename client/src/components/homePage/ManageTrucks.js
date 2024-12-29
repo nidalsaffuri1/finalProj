@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchTrucks, createTruck, deleteTruck } from "../services/api";
+import { fetchTrucks, createTruck, deleteTruck } from "../../services/api";
 
 const ManageTrucks = () => {
   const [trucks, setTrucks] = useState([]);
