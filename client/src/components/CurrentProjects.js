@@ -24,7 +24,6 @@ const CurrentProjects = () => {
   }, [searchQuery]);
 
   // Fetch projects whenever currentPage or debouncedSearchQuery changes
-  // Fetch projects whenever currentPage or debouncedSearchQuery changes
   useEffect(() => {
     const loadProjects = async () => {
       console.log("Loading projects...");
@@ -129,9 +128,11 @@ const CurrentProjects = () => {
                 <tr
                   key={project._id}
                   style={{
-                    backgroundColor: project.isCompleted
-                      ? "lightgreen"
-                      : "lightcoral",
+                    backgroundColor: project.hasTasks
+                      ? project.isCompleted
+                        ? "lightgreen"
+                        : "lightcoral"
+                      : "white", // Neutral color for projects with no tasks
                   }}
                 >
                   <td>{index + 1 + (currentPage - 1) * projectsPerPage}</td>

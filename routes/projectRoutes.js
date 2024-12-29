@@ -3,6 +3,7 @@ const Project = require("../models/project");
 const Truck = require("../models/truck");
 const Customer = require("../models/customer");
 const Product = require("../models/product");
+const Task = require("../models/task");
 const router = express.Router();
 
 // Fetch all projects (with pagination, sorting, and search)
@@ -38,10 +39,41 @@ router.get("/", async (req, res) => {
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
 
+    // Fetch task completion for each project
+    const projectIds = projects.map((project) => project._id);
+    const taskAggregation = await Task.aggregate([
+      { $match: { projectId: { $in: projectIds } } },
+      {
+        $group: {
+          _id: "$projectId",
+          totalTasks: { $sum: 1 },
+          completedTasks: {
+            $sum: { $cond: ["$isCompleted", 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    // Map task data to projects
+    const projectStatusMap = taskAggregation.reduce((acc, taskData) => {
+      acc[taskData._id] = {
+        isCompleted: taskData.totalTasks === taskData.completedTasks,
+        hasTasks: taskData.totalTasks > 0,
+      };
+      return acc;
+    }, {});
+
+    // Attach status to projects
+    const projectsWithStatus = projects.map((project) => ({
+      ...project.toObject(),
+      isCompleted: projectStatusMap[project._id]?.isCompleted ?? null,
+      hasTasks: projectStatusMap[project._id]?.hasTasks ?? false,
+    }));
+
     const totalProjects = await Project.countDocuments(query);
 
     res.json({
-      projects,
+      projects: projectsWithStatus,
       totalPages: Math.ceil(totalProjects / limit),
       totalProjects,
       currentPage: parseInt(page),
