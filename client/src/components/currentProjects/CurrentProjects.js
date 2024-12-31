@@ -13,9 +13,11 @@ const CurrentProjects = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // const navigate = useNavigate();
   const searchInputRef = useRef(null);
   const projectsPerPage = 10;
 
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -23,6 +25,7 @@ const CurrentProjects = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
+  // Fetch Projects
   useEffect(() => {
     const loadProjects = async () => {
       setLoading(true);
@@ -52,6 +55,7 @@ const CurrentProjects = () => {
     loadProjects();
   }, [currentPage, debouncedSearchQuery]);
 
+  // Delete Handler
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this project?")) {
       try {
@@ -83,7 +87,7 @@ const CurrentProjects = () => {
     <div className="projects-container">
       <h1>Current Projects</h1>
 
-      {/* Search Bar Section */}
+      {/* Search Bar */}
       <div className="search-bar-container">
         <input
           ref={searchInputRef}
@@ -95,7 +99,6 @@ const CurrentProjects = () => {
         />
       </div>
 
-      {/* Project Table Section */}
       {loading ? (
         <p>Loading projects...</p>
       ) : projects.length === 0 ? (
@@ -144,6 +147,11 @@ const CurrentProjects = () => {
                     </button>
                     <Link to={`/projects/${project._id}`}>
                       <button className="view-btn">View</button>
+                    </Link>
+                    <Link
+                      to={`/create-project?customerId=${project.customerId?._id}`}
+                    >
+                      <button className="add-btn">➕</button>
                     </Link>
                   </td>
                 </tr>

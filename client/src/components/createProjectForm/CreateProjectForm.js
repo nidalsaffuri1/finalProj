@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { createProject } from "../../services/api"; // Import API function
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { createProject, fetchCustomerById } from "../../services/api"; // Import the new function
 import "./createProjectFormm.css";
 
 const CreateProjectForm = () => {
-  // State to hold form inputs
   const [formData, setFormData] = useState({
     serialNumber: "",
     customerName: "",
@@ -16,7 +16,35 @@ const CreateProjectForm = () => {
     notes: "",
   });
 
-  const [message, setMessage] = useState(""); // For success/error messages
+  const [message, setMessage] = useState("");
+
+  // Get customerId from URL (when clicking ➕ button)
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const customerId = searchParams.get("customerId");
+
+  // Fetch customer data if customerId exists
+  useEffect(() => {
+    const loadCustomerData = async () => {
+      if (customerId) {
+        try {
+          const customer = await fetchCustomerById(customerId);
+          console.log("Customer Data:", customer); // Debug: Check if data returns
+          setFormData((prev) => ({
+            ...prev,
+            customerName: customer.name,
+            customerEmail: customer.email,
+            customerPhone: customer.phone,
+            customerAddress: customer.address,
+          }));
+          console.log("Customer Data Loaded:", customer);
+        } catch (error) {
+          console.error("Failed to load customer data:", error);
+        }
+      }
+    };
+    loadCustomerData();
+  }, [customerId]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -24,26 +52,34 @@ const CreateProjectForm = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log("Submitting Form Data:", formData); // Log form data before submission
-      const response = await createProject(formData); // Call the API
-      console.log("Response from API:", response); // Log API response
+      const projectData = {
+        ...formData,
+        customerId: customerId || undefined, // Pass customerId if available
+      };
+
+      console.log("Submitting Project Data:", projectData);
+
+      await createProject(projectData); // Call API to create the project
+
       setMessage("Project created successfully!");
-      // Reset the form after successful submission
-      setFormData({
-        serialNumber: "",
-        customerName: "",
-        customerEmail: "",
-        customerPhone: "",
-        customerAddress: "",
-        truckModel: "",
-        truckRegistrationNumber: "",
-        truckWeightCapacity: "",
-        notes: "",
-      });
+
+      if (!customerId) {
+        // Reset form only if it's a new customer
+        setFormData({
+          serialNumber: "",
+          customerName: "",
+          customerEmail: "",
+          customerPhone: "",
+          customerAddress: "",
+          truckModel: "",
+          truckRegistrationNumber: "",
+          truckWeightCapacity: "",
+          notes: "",
+        });
+      }
     } catch (error) {
       console.error("Error creating project:", error);
       setMessage("Failed to create project. Please try again.");
@@ -52,9 +88,12 @@ const CreateProjectForm = () => {
 
   return (
     <div className="container">
-      <h1>Create New Project</h1>
+      <h1>
+        {customerId
+          ? "Add Project for Existing Customer"
+          : "Create New Project"}
+      </h1>
       <form onSubmit={handleSubmit} className="create-form">
-        {/* Project Details */}
         <label>
           Serial Number:
           <input
@@ -66,7 +105,6 @@ const CreateProjectForm = () => {
           />
         </label>
 
-        {/* Customer Details */}
         <label>
           Customer Name:
           <input
@@ -75,8 +113,10 @@ const CreateProjectForm = () => {
             value={formData.customerName}
             onChange={handleChange}
             required
+            disabled={!!customerId} // Disable if prefilled
           />
         </label>
+
         <label>
           Customer Email:
           <input
@@ -84,8 +124,10 @@ const CreateProjectForm = () => {
             name="customerEmail"
             value={formData.customerEmail}
             onChange={handleChange}
+            disabled={!!customerId}
           />
         </label>
+
         <label>
           Customer Phone:
           <input
@@ -93,8 +135,10 @@ const CreateProjectForm = () => {
             name="customerPhone"
             value={formData.customerPhone}
             onChange={handleChange}
+            disabled={!!customerId}
           />
         </label>
+
         <label>
           Customer Address:
           <input
@@ -102,10 +146,10 @@ const CreateProjectForm = () => {
             name="customerAddress"
             value={formData.customerAddress}
             onChange={handleChange}
+            disabled={!!customerId}
           />
         </label>
 
-        {/* Truck Details */}
         <label>
           Truck Model:
           <input
@@ -115,6 +159,7 @@ const CreateProjectForm = () => {
             onChange={handleChange}
           />
         </label>
+
         <label>
           Truck Registration Number:
           <input
@@ -124,6 +169,7 @@ const CreateProjectForm = () => {
             onChange={handleChange}
           />
         </label>
+
         <label>
           Truck Weight Capacity:
           <input
@@ -134,7 +180,6 @@ const CreateProjectForm = () => {
           />
         </label>
 
-        {/* Notes */}
         <label>
           Notes:
           <textarea
@@ -144,7 +189,6 @@ const CreateProjectForm = () => {
           />
         </label>
 
-        {/* Submit Button */}
         <button type="submit">Submit</button>
       </form>
       {message && (

@@ -196,11 +196,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create a new project (Prevent Duplicate Checklist)
 router.post("/", async (req, res) => {
   try {
     const {
       serialNumber,
+      customerId, // Use customerId directly if passed
       customerName,
       customerEmail,
       customerPhone,
@@ -216,16 +216,30 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Serial Number is required." });
     }
 
-    // Step 1: Find or create the customer
-    let customer = await Customer.findOne({ name: customerName });
-    if (!customer) {
-      customer = new Customer({
-        name: customerName,
-        email: customerEmail,
-        phone: customerPhone,
-        address: customerAddress,
-      });
-      customer = await customer.save();
+    let customer;
+
+    // 🔹 If customerId is provided, fetch the existing customer
+    if (customerId) {
+      customer = await Customer.findById(customerId);
+      if (!customer) {
+        return res.status(404).json({ error: "Customer not found." });
+      }
+    } else {
+      // 🔹 Otherwise, find or create a new customer by name
+      if (!customerName) {
+        return res.status(400).json({ error: "Customer name is required." });
+      }
+
+      customer = await Customer.findOne({ name: customerName });
+      if (!customer) {
+        customer = new Customer({
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          address: customerAddress,
+        });
+        customer = await customer.save();
+      }
     }
 
     // Step 2: Find or create the truck
@@ -246,12 +260,13 @@ router.post("/", async (req, res) => {
     const products = await Product.find();
 
     // Step 4: Map products to checklist format (ONLY ADD if not already present)
-    const checklist = products.map((product) => ({
-      productId: product._id,
-      productName: product.name,
-      price: product.unitPrice,
-      checked: false,
-    }));
+    // const checklist = products.map((product) => ({
+    //   productId: product._id,
+    //   productName: product.name,
+    //   price: product.unitPrice,
+    //   checked: false,
+    // }));
+    const checklist = req.body.checklist || []; // Use checklist from the request body, or start with an empty array
 
     // Step 5: Create the project with the checklist
     const project = new Project({
@@ -281,6 +296,11 @@ router.put("/:id", async (req, res) => {
       {
         ...updateData,
         checklist,
+        dynamicFields, // Ensure dynamic fields are handled
+        $set: {
+          "truck.model": truckModel,
+          "truck.weightCapacity": weightCapacity,
+        },
       },
       { new: true }
     )
@@ -320,6 +340,19 @@ router.put("/:id/notes", async (req, res) => {
   } catch (err) {
     console.error("Error updating notes:", err.message);
     res.status(500).json({ error: "Failed to update notes" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const result = await Project.findByIdAndDelete(req.params.id);
+    if (!result) {
+      return res.status(404).json({ error: "Project not found." });
+    }
+    res.json({ message: "Project deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting project:", err.message);
+    res.status(500).json({ error: "Failed to delete project." });
   }
 });
 
