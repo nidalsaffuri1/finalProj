@@ -84,6 +84,99 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch projects" });
   }
 });
+// router.get("/", async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       limit = 10,
+//       sortBy = "createdAt",
+//       order = "desc",
+//       search = "",
+//     } = req.query;
+
+//     const sortOrder = order === "asc" ? 1 : -1;
+
+//     const query = {};
+
+//     if (search) {
+//       // Step 1: Find customers by name
+//       const customers = await Customer.find({
+//         name: { $regex: search, $options: "i" },
+//       });
+//       const customerIds = customers.map((customer) => customer._id);
+
+//       // Step 2: Find trucks by model
+//       const trucks = await Truck.find({
+//         model: { $regex: search, $options: "i" },
+//       });
+//       const truckIds = trucks.map((truck) => truck._id);
+
+//       // Step 3: Search projects
+//       query.$or = [
+//         { serialNumber: { $regex: search, $options: "i" } }, // Serial Number
+//         { customerId: { $in: customerIds } }, // Customer Name
+//         { truckId: { $in: truckIds } }, // Truck Model
+//         {
+//           createdAt: {
+//             $regex: search,
+//             $options: "i",
+//           },
+//         }, // Created At as string
+//       ];
+//     }
+
+//     // Fetch projects matching the query
+//     const projects = await Project.find(query)
+//       .populate("customerId", "name email phone address")
+//       .populate("truckId", "model")
+//       .sort({ [sortBy]: sortOrder })
+//       .skip((page - 1) * limit)
+//       .limit(parseInt(limit));
+
+//     // Fetch task completion for each project
+//     const projectIds = projects.map((project) => project._id);
+//     const taskAggregation = await Task.aggregate([
+//       { $match: { projectId: { $in: projectIds } } },
+//       {
+//         $group: {
+//           _id: "$projectId",
+//           totalTasks: { $sum: 1 },
+//           completedTasks: {
+//             $sum: { $cond: ["$isCompleted", 1, 0] },
+//           },
+//         },
+//       },
+//     ]);
+
+//     // Map task data to projects
+//     const projectStatusMap = taskAggregation.reduce((acc, taskData) => {
+//       acc[taskData._id] = {
+//         isCompleted: taskData.totalTasks === taskData.completedTasks,
+//         hasTasks: taskData.totalTasks > 0,
+//       };
+//       return acc;
+//     }, {});
+
+//     // Attach status to projects
+//     const projectsWithStatus = projects.map((project) => ({
+//       ...project.toObject(),
+//       isCompleted: projectStatusMap[project._id]?.isCompleted ?? null,
+//       hasTasks: projectStatusMap[project._id]?.hasTasks ?? false,
+//     }));
+
+//     const totalProjects = await Project.countDocuments(query);
+
+//     res.json({
+//       projects: projectsWithStatus,
+//       totalPages: Math.ceil(totalProjects / limit),
+//       totalProjects,
+//       currentPage: parseInt(page),
+//     });
+//   } catch (err) {
+//     console.error("Error fetching projects:", err.message);
+//     res.status(500).json({ error: "Failed to fetch projects" });
+//   }
+// });
 
 // Fetch a single project by ID
 router.get("/:id", async (req, res) => {
