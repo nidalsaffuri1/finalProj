@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { fetchProjects, deleteProject } from "../../services/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./currentProjectss.css";
@@ -13,9 +13,11 @@ const CurrentProjects = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
   const searchInputRef = useRef(null);
   const projectsPerPage = 10;
 
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -23,6 +25,7 @@ const CurrentProjects = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
+  // Fetch Projects
   useEffect(() => {
     const loadProjects = async () => {
       setLoading(true);
@@ -52,6 +55,7 @@ const CurrentProjects = () => {
     loadProjects();
   }, [currentPage, debouncedSearchQuery]);
 
+  // Delete Handler
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this project?")) {
       try {
@@ -66,6 +70,11 @@ const CurrentProjects = () => {
         toast.error("Failed to delete project.");
       }
     }
+  };
+
+  // New Project Button Click Handler
+  const handleNewProject = (customer) => {
+    navigate(`/create-project?customerId=${customer._id}`);
   };
 
   const handlePreviousPage = () =>
@@ -83,7 +92,7 @@ const CurrentProjects = () => {
     <div className="projects-container">
       <h1>Current Projects</h1>
 
-      {/* Search Bar Section */}
+      {/* Search Bar */}
       <div className="search-bar-container">
         <input
           ref={searchInputRef}
@@ -95,14 +104,10 @@ const CurrentProjects = () => {
         />
       </div>
 
-      {/* Project Table Section */}
       {loading ? (
         <p>Loading projects...</p>
       ) : projects.length === 0 ? (
-        <p>
-          No projects found. Try creating a new project or modify your search
-          query.
-        </p>
+        <p>No projects found. Try creating a new project or modify your search query.</p>
       ) : (
         <>
           <table className="projects-table">
@@ -145,6 +150,14 @@ const CurrentProjects = () => {
                     <Link to={`/projects/${project._id}`}>
                       <button className="view-btn">View</button>
                     </Link>
+                    <button
+                      className="new-project-btn"
+                      onClick={() =>
+                        handleNewProject(project.customerId)
+                      }
+                    >
+                      ➕
+                    </button>
                   </td>
                 </tr>
               ))}
