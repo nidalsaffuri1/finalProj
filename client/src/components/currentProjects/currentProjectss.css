@@ -21,10 +21,15 @@
   display: block;
 }
 
+.search-bar:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
 /* Table Wrapper to control width */
 .projects-table {
   max-width: 1250px;
-  margin: 0 auto; /* Centers the table */
+  margin: 0 auto;
   overflow-x: auto; /* Ensures responsiveness on smaller screens */
   border-radius: 10px;
   background-color: #fff;
@@ -55,12 +60,24 @@ tr:hover {
   background-color: #f5f5f5;
 }
 
+/* Project Row Status Colors */
+.project-row.completed {
+  background-color: #d4edda;  /* Light green for completed */
+}
+
+.project-row.in-progress {
+  background-color: #f8d7da;  /* Light red for incomplete */
+}
+
+.project-row.normal {
+  background-color: #ffffff;  /* Default white for no tasks */
+}
+
 /* Buttons */
-/* Buttons Styling */
 .delete-btn,
 .view-btn {
   padding: 8px 15px;
-  margin-right: 10px; /* Adds space between buttons */
+  margin-right: 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -84,11 +101,6 @@ tr:hover {
 
 .view-btn:hover {
   background-color: #0056b3;
-}
-
-/* Last button (prevents extra margin) */
-.view-btn:last-child {
-  margin-right: 0;
 }
 
 /* Pagination Section */
