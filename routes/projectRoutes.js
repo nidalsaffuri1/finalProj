@@ -103,11 +103,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create a new project (Prevent Duplicate Checklist)
 router.post("/", async (req, res) => {
   try {
     const {
       serialNumber,
+      customerId, // Use customerId directly if passed
       customerName,
       customerEmail,
       customerPhone,
@@ -123,16 +123,30 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Serial Number is required." });
     }
 
-    // Step 1: Find or create the customer
-    let customer = await Customer.findOne({ name: customerName });
-    if (!customer) {
-      customer = new Customer({
-        name: customerName,
-        email: customerEmail,
-        phone: customerPhone,
-        address: customerAddress,
-      });
-      customer = await customer.save();
+    let customer;
+
+    // 🔹 If customerId is provided, fetch the existing customer
+    if (customerId) {
+      customer = await Customer.findById(customerId);
+      if (!customer) {
+        return res.status(404).json({ error: "Customer not found." });
+      }
+    } else {
+      // 🔹 Otherwise, find or create a new customer by name
+      if (!customerName) {
+        return res.status(400).json({ error: "Customer name is required." });
+      }
+
+      customer = await Customer.findOne({ name: customerName });
+      if (!customer) {
+        customer = new Customer({
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          address: customerAddress,
+        });
+        customer = await customer.save();
+      }
     }
 
     // Step 2: Find or create the truck
@@ -242,6 +256,5 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete project." });
   }
 });
-
 
 module.exports = router;

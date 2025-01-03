@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import {
-  createProject,
-  fetchCustomerById,
-} from "../../services/api"; // Import the new function
+import { createProject, fetchCustomerById } from "../../services/api"; // Import the new function
 import "./createProjectFormm.css";
 
 const CreateProjectForm = () => {
@@ -32,6 +29,7 @@ const CreateProjectForm = () => {
       if (customerId) {
         try {
           const customer = await fetchCustomerById(customerId);
+          console.log("Customer Data:", customer); // Debug: Check if data returns
           setFormData((prev) => ({
             ...prev,
             customerName: customer.name,
@@ -39,12 +37,12 @@ const CreateProjectForm = () => {
             customerPhone: customer.phone,
             customerAddress: customer.address,
           }));
+          console.log("Customer Data Loaded:", customer);
         } catch (error) {
           console.error("Failed to load customer data:", error);
         }
       }
     };
-
     loadCustomerData();
   }, [customerId]);
 
@@ -59,15 +57,15 @@ const CreateProjectForm = () => {
     try {
       const projectData = {
         ...formData,
-        customerId: customerId || undefined,  // Pass customerId if available
+        customerId: customerId || undefined, // Pass customerId if available
       };
-  
+
       console.log("Submitting Project Data:", projectData);
-  
-      await createProject(projectData);  // Call API to create the project
-  
+
+      await createProject(projectData); // Call API to create the project
+
       setMessage("Project created successfully!");
-  
+
       if (!customerId) {
         // Reset form only if it's a new customer
         setFormData({
@@ -87,11 +85,14 @@ const CreateProjectForm = () => {
       setMessage("Failed to create project. Please try again.");
     }
   };
-  
 
   return (
     <div className="container">
-      <h1>{customerId ? "Add Project for Existing Customer" : "Create New Project"}</h1>
+      <h1>
+        {customerId
+          ? "Add Project for Existing Customer"
+          : "Create New Project"}
+      </h1>
       <form onSubmit={handleSubmit} className="create-form">
         <label>
           Serial Number:
@@ -112,7 +113,7 @@ const CreateProjectForm = () => {
             value={formData.customerName}
             onChange={handleChange}
             required
-            disabled={!!customerId}  // Disable if prefilled
+            disabled={!!customerId} // Disable if prefilled
           />
         </label>
 

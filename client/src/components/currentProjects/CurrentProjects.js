@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { fetchProjects, deleteProject } from "../../services/api";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./currentProjectss.css";
@@ -13,7 +13,7 @@ const CurrentProjects = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const searchInputRef = useRef(null);
   const projectsPerPage = 10;
 
@@ -72,11 +72,6 @@ const CurrentProjects = () => {
     }
   };
 
-  // New Project Button Click Handler
-  const handleNewProject = (customer) => {
-    navigate(`/create-project?customerId=${customer._id}`);
-  };
-
   const handlePreviousPage = () =>
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   const handleNextPage = () =>
@@ -107,7 +102,10 @@ const CurrentProjects = () => {
       {loading ? (
         <p>Loading projects...</p>
       ) : projects.length === 0 ? (
-        <p>No projects found. Try creating a new project or modify your search query.</p>
+        <p>
+          No projects found. Try creating a new project or modify your search
+          query.
+        </p>
       ) : (
         <>
           <table className="projects-table">
@@ -150,14 +148,11 @@ const CurrentProjects = () => {
                     <Link to={`/projects/${project._id}`}>
                       <button className="view-btn">View</button>
                     </Link>
-                    <button
-                      className="new-project-btn"
-                      onClick={() =>
-                        handleNewProject(project.customerId)
-                      }
+                    <Link
+                      to={`/create-project?customerId=${project.customerId?._id}`}
                     >
-                      ➕
-                    </button>
+                      <button className="add-btn">➕</button>
+                    </Link>
                   </td>
                 </tr>
               ))}

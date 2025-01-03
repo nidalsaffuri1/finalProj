@@ -50,14 +50,26 @@ export const fetchProjectById = async (id) => {
   }
 };
 
-// Create a new project
 export const createProject = async (projectData) => {
   try {
     console.log("Creating project with data:", projectData);
+
+    // If customerId exists, strip out redundant fields to avoid validation issues
+    const dataToSend = projectData.customerId
+      ? {
+          serialNumber: projectData.serialNumber,
+          truckModel: projectData.truckModel,
+          truckRegistrationNumber: projectData.truckRegistrationNumber,
+          truckWeightCapacity: projectData.truckWeightCapacity,
+          notes: projectData.notes,
+          customerId: projectData.customerId,
+        }
+      : projectData; // Send full data if no customerId
+
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(projectData),
+      body: JSON.stringify(dataToSend),
     });
 
     if (!response.ok) {
@@ -144,24 +156,20 @@ export const fetchCustomers = async () => {
   }
 };
 
-// Fetch customer by ID
 export const fetchCustomerById = async (customerId) => {
   try {
     const response = await fetch(
       `http://localhost:5000/customers/${customerId}`
     );
-    if (!response.ok) {
-      throw new Error("Failed to fetch customer details");
-    }
+    if (!response.ok) throw new Error("Failed to fetch customer details");
     const data = await response.json();
-    console.log("Fetched Customer Details:", data);
+    console.log("Fetched Customer Data:", data); // Debug: Ensure data is correct
     return data;
   } catch (error) {
     console.error("Error fetching customer by ID:", error.message);
     throw error;
   }
 };
-
 
 // Update project notes
 export const updateNotes = async (projectId, notes) => {
