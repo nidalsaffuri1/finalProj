@@ -230,4 +230,18 @@ router.put("/:id/notes", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const result = await Project.findByIdAndDelete(req.params.id);
+    if (!result) {
+      return res.status(404).json({ error: "Project not found." });
+    }
+    res.json({ message: "Project deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting project:", err.message);
+    res.status(500).json({ error: "Failed to delete project." });
+  }
+});
+
+
 module.exports = router;

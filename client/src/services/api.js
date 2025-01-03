@@ -144,6 +144,25 @@ export const fetchCustomers = async () => {
   }
 };
 
+// Fetch customer by ID
+export const fetchCustomerById = async (customerId) => {
+  try {
+    const response = await fetch(
+      `http://localhost:5000/customers/${customerId}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch customer details");
+    }
+    const data = await response.json();
+    console.log("Fetched Customer Details:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching customer by ID:", error.message);
+    throw error;
+  }
+};
+
+
 // Update project notes
 export const updateNotes = async (projectId, notes) => {
   try {
