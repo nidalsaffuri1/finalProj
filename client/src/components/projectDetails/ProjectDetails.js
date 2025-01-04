@@ -9,6 +9,9 @@ import {
   updateTask,
   deleteTask,
   updateProject,
+  createProduct,
+  fetchProducts,
+  deleteProduct,
 } from "../../services/api";
 import { toast } from "react-toastify";
 import "./projectDetailss.css";
@@ -21,6 +24,8 @@ const ProjectDetails = () => {
   const [newTaskName, setNewTaskName] = useState("");
   const [newField, setNewField] = useState({ name: "", value: "" });
   const [checklist, setChecklist] = useState([]);
+  const [products, setProducts] = useState([]); // For right block
+  const [newProduct, setNewProduct] = useState({ name: "", price: "" });
 
   useEffect(() => {
     const loadProjectDetails = async () => {
@@ -37,6 +42,7 @@ const ProjectDetails = () => {
         setTasks(taskData);
 
         setChecklist(projectData.checklist || []);
+        loadAvailableProducts();
       } catch (error) {
         console.error("Error loading project details:", error.message);
         toast.error("Failed to load project details.");
@@ -46,29 +52,64 @@ const ProjectDetails = () => {
     loadProjectDetails();
   }, [id]);
 
+  const loadAvailableProducts = async () => {
+    try {
+      const productData = await fetchProducts();
+      setProducts(productData);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+      toast.error("Failed to load available products.");
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
+
+    try {
+      await deleteProduct(productId); // Call delete API
+      setProducts((prev) => prev.filter((prod) => prod._id !== productId)); // Remove from state
+      toast.success("Product deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete product.");
+    }
+  };
+
   const handleChecklistToggle = async (productId) => {
-    const updatedChecklist = checklist.map((item) =>
-      (item.productId._id || item.productId) === productId
-        ? { ...item, checked: !item.checked }
-        : item
+    const existingItem = checklist.find(
+      (item) =>
+        item.productId === productId || item.productId?._id === productId
     );
+
+    let updatedChecklist;
+    if (existingItem) {
+      updatedChecklist = checklist.filter(
+        (item) => item.productId !== productId
+      );
+    } else {
+      const productToAdd = products.find((prod) => prod._id === productId);
+      updatedChecklist = [
+        ...checklist,
+        {
+          productId: productToAdd._id,
+          productName: productToAdd.name,
+          price: productToAdd.unitPrice,
+          checked: true,
+        },
+      ];
+    }
 
     try {
       const updatedProject = await updateProject(project._id, {
         ...project,
         checklist: updatedChecklist,
       });
-
-      // Ensure customer information is not overwritten
-      setProject((prev) => ({
-        ...updatedProject,
-        customerId: prev.customerId, // Preserve existing customer data
-      }));
-
-      toast.success("Checklist updated successfully!");
+      setChecklist(updatedChecklist);
+      setProject(updatedProject);
+      toast.success("Checklist updated!");
     } catch (error) {
+      console.error("Failed to update checklist:", error);
       toast.error("Failed to update checklist.");
-      console.error("Error updating checklist:", error);
     }
 
     setChecklist(updatedChecklist); // Update the state to reflect the changes
@@ -139,6 +180,67 @@ const ProjectDetails = () => {
     }
   };
 
+  // const handleProductClick = (product) => {
+  //   // Check if product is already in the checklist
+  //   const isProductInChecklist = checklist.some(
+  //     (item) => item.productId === product._id
+  //   );
+
+  //   if (!isProductInChecklist) {
+  //     // Add product to checklist if not already there
+  //     const newItem = {
+  //       productId: product._id,
+  //       productName: product.name,
+  //       price: product.unitPrice,
+  //       checked: true, // Auto-check when added to checklist
+  //     };
+  //     setChecklist((prev) => [...prev, newItem]);
+  //     toast.success(`${product.name} added to checklist.`);
+  //   } else {
+  //     toast.warn(`${product.name} is already in the checklist.`);
+  //   }
+  // };
+  const handleProductClick = (product) => {
+    const existingItemIndex = checklist.findIndex(
+      (item) => item.productId === product._id
+    );
+
+    if (existingItemIndex === -1) {
+      // Add product with default quantity and ensure price is treated correctly
+      const newItem = {
+        productId: product._id,
+        productName: product.name,
+        price: product.unitPrice || 0, // Ensure price is set
+        quantity: 1, // Ensure default quantity
+        checked: true,
+      };
+      setChecklist((prev) => [...prev, newItem]);
+      toast.success(`${product.name} added to checklist.`);
+    } else {
+      toast.warn(`${product.name} is already in the checklist.`);
+    }
+  };
+
+  // Handle Adding New Product
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.price) {
+      toast.error("Product name and price are required.");
+      return;
+    }
+    try {
+      const createdProduct = await createProduct({
+        name: newProduct.name,
+        unitPrice: parseFloat(newProduct.price),
+      });
+      setProducts((prev) => [...prev, createdProduct]);
+      setNewProduct({ name: "", price: "" });
+      toast.success("Product added successfully!");
+    } catch (error) {
+      toast.error("Failed to add product.");
+      console.error("Failed to add product:", error);
+    }
+  };
+
   const handleSaveNotes = async () => {
     if (!project.notes.trim()) {
       return toast.error("Notes cannot be empty.");
@@ -160,13 +262,27 @@ const ProjectDetails = () => {
     }
   };
 
+  const handleQuantityChange = (productId, newQuantity) => {
+    const updatedChecklist = checklist.map((item) =>
+      item.productId === productId
+        ? { ...item, quantity: parseInt(newQuantity) || 1 }
+        : item
+    );
+    setChecklist(updatedChecklist);
+  };
+
+  // const calculateTotal = () => {
+  //   return checklist
+  //     .filter((item) => item.checked)
+  //     .reduce(
+  //       (sum, item) => sum + (item.productId?.unitPrice || item.price),
+  //       0
+  //     );
+  // };
   const calculateTotal = () => {
     return checklist
       .filter((item) => item.checked)
-      .reduce(
-        (sum, item) => sum + (item.productId?.unitPrice || item.price),
-        0
-      );
+      .reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   };
 
   if (!project) return <p>Loading...</p>;
@@ -217,10 +333,29 @@ const ProjectDetails = () => {
           ></textarea>
           <button onClick={handleSaveNotes}>Save Notes</button>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="main-content">
+        {/* Add Information */}
+        <h2>Add Information</h2>
+        <div className="add-info">
+          <input
+            type="text"
+            placeholder="Field Name"
+            value={newField.name}
+            onChange={(e) => setNewField({ ...newField, name: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Field Value"
+            value={newField.value}
+            onChange={(e) =>
+              setNewField({ ...newField, value: e.target.value })
+            }
+          />
+          <button onClick={handleAddInformation}>+ Add</button>
+        </div>
+      </div>
+      {/* Tasks Block */}
+      <div className="block">
         {/* Tasks */}
         <h2>Tasks</h2>
         <ul className="task-list">
@@ -255,61 +390,89 @@ const ProjectDetails = () => {
           placeholder="New Task"
         />
         <button onClick={handleAddTask}>Add Task</button>
-
-        {/* Checklist */}
-        <h2>Checklist</h2>
-        <div className="checklist">
-          <ul>
-            {checklist.length > 0 ? (
-              checklist.map((item) => (
-                <li key={item._id || item.productId?._id || item.productName}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={item.checked}
-                      onChange={() =>
-                        item.productId
-                          ? handleChecklistToggle(
-                              item.productId._id || item.productId
-                            )
-                          : console.error("Missing productId for item", item)
-                      }
-                    />
-                    {item.productId?.name ||
-                      item.productName ||
-                      "Unnamed Product"}{" "}
-                    - ${item.productId?.unitPrice || item.price || "0.00"}
-                  </label>
+      </div>
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Checklist Block */}
+        <div className="block">
+          <h2>Checklist</h2>
+          <div className="checklist">
+            <ul>
+              {checklist.map((item) => (
+                <li key={item.productId} className="checklist-item">
+                  <input
+                    type="checkbox"
+                    checked={item.checked}
+                    onChange={() => handleChecklistToggle(item.productId)}
+                  />
+                  {item.productName} - ${item.price} each
+                  {/* Quantity Input */}
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      handleQuantityChange(item.productId, e.target.value)
+                    }
+                    className="quantity-input"
+                  />
+                  {/* Total Price for the Item */}
+                  <span className="item-total">
+                    = ${(item.price * item.quantity).toFixed(2)}
+                  </span>
                 </li>
-              ))
-            ) : (
-              <p>No products in checklist.</p>
-            )}
-          </ul>
-          <div className="total-section">
-            <strong>Total: ${calculateTotal().toFixed(2)}</strong>
+              ))}
+            </ul>
+            <div>
+              <strong>Total: ${calculateTotal().toFixed(2)}</strong>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Add Information */}
-        <h2>Add Information</h2>
-        <div className="add-info">
-          <input
-            type="text"
-            placeholder="Field Name"
-            value={newField.name}
-            onChange={(e) => setNewField({ ...newField, name: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="Field Value"
-            value={newField.value}
-            onChange={(e) =>
-              setNewField({ ...newField, value: e.target.value })
-            }
-          />
-          <button onClick={handleAddInformation}>+ Add</button>
-        </div>
+      {/* Right Product Block */}
+      <div className="right-block">
+        <h2>Available Products</h2>
+        <ul className="product-list">
+          {products.map((product) => (
+            <li
+              key={product._id}
+              onClick={() => handleProductClick(product)} // Handles adding to checklist
+              className="product-item"
+            >
+              {product.name} - ${product.unitPrice}
+              <button
+                className="delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the parent click event
+                  handleDeleteProduct(product._id); // Delete the product
+                }}
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {/* Add New Product Form */}
+        <h3>Add New Product</h3>
+        <input
+          type="text"
+          placeholder="Product Name"
+          value={newProduct.name}
+          onChange={(e) =>
+            setNewProduct((prev) => ({ ...prev, name: e.target.value }))
+          }
+        />
+        <input
+          type="number"
+          placeholder="Price"
+          value={newProduct.price}
+          onChange={(e) =>
+            setNewProduct((prev) => ({ ...prev, price: e.target.value }))
+          }
+        />
+        <button onClick={handleAddProduct}>Add Product</button>
       </div>
     </div>
   );

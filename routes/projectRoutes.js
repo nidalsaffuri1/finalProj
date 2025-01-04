@@ -167,12 +167,13 @@ router.post("/", async (req, res) => {
     const products = await Product.find();
 
     // Step 4: Map products to checklist format (ONLY ADD if not already present)
-    const checklist = products.map((product) => ({
-      productId: product._id,
-      productName: product.name,
-      price: product.unitPrice,
-      checked: false,
-    }));
+    // const checklist = products.map((product) => ({
+    //   productId: product._id,
+    //   productName: product.name,
+    //   price: product.unitPrice,
+    //   checked: false,
+    // }));
+    const checklist = req.body.checklist || []; // Use checklist from the request body, or start with an empty array
 
     // Step 5: Create the project with the checklist
     const project = new Project({

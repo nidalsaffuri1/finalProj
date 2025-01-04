@@ -50,6 +50,20 @@ export const fetchProjectById = async (id) => {
   }
 };
 
+export const fetchProducts = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/products");
+    if (!response.ok) {
+      throw new Error("Failed to fetch products");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
+  }
+};
+
 export const createProject = async (projectData) => {
   try {
     console.log("Creating project with data:", projectData);
@@ -114,6 +128,30 @@ export const updateProject = async (id, projectData) => {
   }
 };
 
+// services/api.js
+
+export const deleteProduct = async (productId) => {
+  try {
+    const response = await fetch(
+      `http://localhost:5000/products/${productId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to delete product");
+    }
+
+    const data = await response.json();
+    console.log("Product deleted:", data);
+    return data;
+  } catch (error) {
+    console.error("Error deleting product:", error.message);
+    throw error;
+  }
+};
+
 // Delete a project
 export const deleteProject = async (id) => {
   try {
@@ -132,6 +170,32 @@ export const deleteProject = async (id) => {
     return data;
   } catch (error) {
     console.error("Error deleting project:", error.message);
+    throw error;
+  }
+};
+
+// Create a new product
+export const createProduct = async (productData) => {
+  try {
+    const response = await fetch("http://localhost:5000/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Failed to create product:", errorText);
+      throw new Error(`Failed to create product: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Created Product Response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error creating product:", error.message);
     throw error;
   }
 };
