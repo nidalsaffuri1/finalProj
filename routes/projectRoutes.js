@@ -203,6 +203,11 @@ router.put("/:id", async (req, res) => {
       {
         ...updateData,
         checklist,
+        dynamicFields, // Ensure dynamic fields are handled
+        $set: {
+          "truck.model": truckModel,
+          "truck.weightCapacity": weightCapacity,
+        },
       },
       { new: true }
     )

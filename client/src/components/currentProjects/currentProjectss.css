@@ -9,22 +9,27 @@
   text-align: center;
 }
 
-/* Search Bar */
+/* Centered Search Bar */
+.search-bar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
 .search-bar {
   width: 70%;
   max-width: 500px;
-  margin: 30px auto 20px auto;
   padding: 12px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
-  display: block;
+  outline: none;
 }
 
 .search-bar:focus {
   border-color: #007bff;
-  outline: none;
 }
+
 
 /* Table Wrapper to control width */
 .projects-table {

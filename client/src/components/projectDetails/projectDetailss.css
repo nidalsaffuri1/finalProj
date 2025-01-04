@@ -1,146 +1,117 @@
-/* General container styling */
+/* General Container */
 .container {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* Sidebar, Main (Tasks + Checklist), Right Block */
   gap: 25px;
-  max-width: 1300px;
-  margin: 30px auto;
-  padding: 25px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f4;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.1);
-  justify-content: space-between;
-  align-items: flex-start;
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #f4f4f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Sidebar (Project Information and Notes) */
+/* Sidebar - Project Info and Notes */
 .sidebar {
-  flex: 1;
-  min-width: 300px;
-  max-width: 350px;
-  padding: 20px;
   background-color: #ffffff;
-  border-right: 1px solid #ddd;
+  padding: 25px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar h2,
 .sidebar h3 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 1.5rem;
 }
 
 .sidebar ul {
-  list-style: none;
+  list-style-type: none;
   padding: 0;
 }
 
 .sidebar ul li {
-  margin-bottom: 12px;
-  font-size: 15px;
-}
-
-.notes-block textarea {
-  width: 100%;
-  height: 100px;
   margin-bottom: 15px;
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  resize: vertical;
+  font-size: 1rem;
 }
 
-.notes-block button {
+.sidebar input[type="text"],
+.sidebar input[type="number"],
+.sidebar textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.sidebar button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Edit and Save Buttons */
+.edit-btn {
   background-color: #007bff;
   color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
-.notes-block button:hover {
-  background-color: #0056b3;
+.save-btn {
+  background-color: #28a745;
+  color: white;
 }
 
-/* Main Content Section (Tasks and Checklist) */
-.main-content {
-  flex: 2;
-  min-width: 650px;
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+.edit-btn:hover,
+.save-btn:hover {
+  opacity: 0.9;
+}
+
+/* Tasks and Checklist Section (Middle) */
+.main-section {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
-/* Tasks Block Styling */
 .block {
-  width: 100%;
-  padding: 25px;
-  margin-bottom: 30px;
   background-color: #ffffff;
-  border: 1px solid #ddd;
+  padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
 }
 
 .block h2 {
-  font-size: 22px;
   margin-bottom: 20px;
+  font-size: 1.5rem;
   color: #333;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 10px;
 }
 
+/* Task List */
 .task-list {
   list-style: none;
   padding: 0;
-  margin-bottom: 20px;
 }
 
 .task-list li {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  margin-bottom: 10px;
-  background-color: #f9f9f9;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 14px;
   border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-  transition: background-color 0.3s ease;
+  border-radius: 8px;
 }
 
-.task-list li:hover {
-  background-color: #f1f1f1;
-}
-
-.task-list span {
-  flex: 1;
-  font-size: 16px;
-  color: #333;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Toggle (Mark Complete/Incomplete) & Delete Buttons */
 .toggle-btn {
-  padding: 8px 15px;
-  font-size: 14px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #28a745; /* Green for Complete/Incomplete */
+  background-color: #28a745;
   color: white;
-  margin-right: 10px;
-  transition: all 0.3s ease;
 }
 
 .toggle-btn:hover {
@@ -148,205 +119,127 @@
 }
 
 .delete-btn {
-  padding: 8px 15px;
-  font-size: 14px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #dc3545; /* Red for Delete */
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-
-/* Task Input Field */
-.block input[type="text"] {
-  width: 80%;
-  padding: 12px;
-  margin: 20px 0;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.block input[type="text"]:focus {
-  outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 6px rgba(40, 167, 69, 0.25);
-}
-
-/* Add Task Button */
-.block button {
-  padding: 12px 25px;
-  background-color: #28a745;
-  color: white;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.block button:hover {
-  background-color: #218838;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .task-list li {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .toggle-btn,
-  .delete-btn {
-    margin-top: 10px;
-    width: 100%;
-  }
-
-  .block input[type="text"] {
-    width: 100%;
-  }
-
-  .block button {
-    width: 100%;
-  }
-}
-.product-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-.delete-btn {
   background-color: #dc3545;
   color: white;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
 .delete-btn:hover {
   background-color: #c82333;
+}
+
+/* Checklist */
+.checklist ul {
+  list-style: none;
+  padding: 0;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.quantity-input {
+  margin-left: 15px;
+  width: 70px;
+  text-align: center;
+  font-size: 1rem;
+  padding: 8px;
+}
+
+.item-total {
+  margin-left: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Available Products Section (Right) */
+.right-block {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.right-block h2 {
+  margin-bottom: 20px;
 }
 
 .product-list {
   list-style: none;
   padding: 0;
-  margin-top: 20px;
 }
 
 .product-item {
-  padding: 12px 20px;
-  margin: 10px 0;
-  background-color: #fff;
+  padding: 14px;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 8px;
+  margin-bottom: 14px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .product-item:hover {
-  background-color: #f4f4f4; /* Light grey hover effect */
-}
-
-.product-item:active {
-  background-color: #e9ecef; /* Slight click effect */
-}
-
-/* Checklist Block */
-
-
-.block.checklist-block {
-  width: 100%;
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-}
-
-/* Right Product Block */
-.right-block {
-  flex: 1;
-  min-width: 300px;
-  max-width: 350px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-.right-block h2 {
-  margin-bottom: 15px;
-}
-
-.right-block ul {
-  list-style: none;
-  padding: 0;
-}
-
-.right-block li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.right-block input[type="checkbox"] {
-  margin-right: 12px;
+  background-color: #f1f1f1;
 }
 
 .right-block input[type="text"],
 .right-block input[type="number"] {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 12px;
+  margin-top: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
 }
 
 .right-block button {
+  margin-top: 20px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
   background-color: #007bff;
   color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
 .right-block button:hover {
   background-color: #0056b3;
 }
 
+/* Notes Section */
+.notes-block textarea {
+  width: 100%;
+  height: 120px;
+  margin-top: 15px;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.notes-block button {
+  background-color: #007bff;
+  color: white;
+}
+
+.notes-block button:hover {
+  background-color: #0056b3;
+}
+
 /* Responsive Design */
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
   .container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    max-width: 100%;
-    margin-bottom: 30px;
-    border-right: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
-
-  .main-content {
-    min-width: 100%;
-  }
-
+  .sidebar,
+  .block,
   .right-block {
     max-width: 100%;
   }

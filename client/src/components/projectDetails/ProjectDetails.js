@@ -26,6 +26,8 @@ const ProjectDetails = () => {
   const [checklist, setChecklist] = useState([]);
   const [products, setProducts] = useState([]); // For right block
   const [newProduct, setNewProduct] = useState({ name: "", price: "" });
+  const [isEditing, setIsEditing] = useState(false); // Toggle Edit Mode
+  const [editableProject, setEditableProject] = useState({}); // Temporary editable project data
 
   useEffect(() => {
     const loadProjectDetails = async () => {
@@ -36,6 +38,12 @@ const ProjectDetails = () => {
         if (projectData.truckId) {
           const truckData = await fetchTruckById(projectData.truckId);
           setTruck(truckData);
+
+          setProject((prev) => ({
+            ...prev,
+            truckModel: truckData.model,
+            weightCapacity: truckData.weightCapacity,
+          }));
         }
 
         const taskData = await fetchTasks(id);
@@ -61,6 +69,85 @@ const ProjectDetails = () => {
       toast.error("Failed to load available products.");
     }
   };
+
+  const handleEditClick = () => {
+    setEditableProject({
+      ...project,
+      customerName: project.customerId?.name || "",
+      customerEmail: project.customerId?.email || "",
+      customerPhone: project.customerId?.phone || "",
+      customerAddress: project.customerId?.address || "",
+      truckModel: project.truckModel || truck?.model || "",
+      weightCapacity: project.weightCapacity || truck?.weightCapacity || "",
+    });
+    setIsEditing(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "truckModel" || name === "weightCapacity") {
+      setEditableProject((prev) => ({
+        ...prev,
+        truckId: {
+          ...prev.truckId,
+          [name === "truckModel" ? "model" : "weightCapacity"]: value,
+        },
+      }));
+    } else {
+      setEditableProject((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleDynamicFieldChange = (index, value) => {
+    const updatedFields = [...editableProject.dynamicFields];
+    updatedFields[index].value = value;
+    setEditableProject((prev) => ({
+      ...prev,
+      dynamicFields: updatedFields,
+    }));
+  };
+  const handleSaveChanges = async () => {
+    try {
+      const updatedProject = {
+        ...editableProject,
+        customerId: project.customerId?._id,
+        truckId: project.truckId,
+        truckModel: editableProject.truckModel,
+        weightCapacity: editableProject.weightCapacity,
+      };
+
+      const result = await updateProject(project._id, updatedProject);
+
+      // Reflect updated truck data in project state
+      setProject((prev) => ({
+        ...prev,
+        truckModel: result.truckModel,
+        weightCapacity: result.weightCapacity,
+      }));
+
+      setIsEditing(false);
+      toast.success("Project updated successfully!");
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      toast.error("Failed to update project.");
+    }
+  };
+
+  // const handleSaveChanges = async () => {
+  //   try {
+  //     const updatedProject = await updateProject(project._id, editableProject);
+  //     setProject(updatedProject); // Update state with saved project
+  //     setIsEditing(false); // Exit edit mode
+  //     toast.success("Project updated successfully!");
+  //   } catch (error) {
+  //     console.error("Failed to update project:", error);
+  //     toast.error("Failed to update project.");
+  //   }
+  // };
 
   const handleDeleteProduct = async (productId) => {
     if (!window.confirm("Are you sure you want to delete this product?"))
@@ -162,14 +249,13 @@ const ProjectDetails = () => {
 
     try {
       const updatedProject = await updateProject(project._id, {
-        ...project,
-        dynamicFields: updatedFields,
+        dynamicFields: updatedFields, // Send only dynamicFields
       });
 
-      // Preserve customer data
+      // Update project state without overriding truck or customer data
       setProject((prev) => ({
-        ...updatedProject,
-        customerId: prev.customerId,
+        ...prev,
+        dynamicFields: updatedProject.dynamicFields,
       }));
 
       setNewField({ name: "", value: "" });
@@ -179,6 +265,33 @@ const ProjectDetails = () => {
       toast.error("Failed to add information.");
     }
   };
+
+  // const handleAddInformation = async () => {
+  //   if (!newField.name.trim() || !newField.value.trim()) {
+  //     return toast.error("Both name and value are required.");
+  //   }
+
+  //   const updatedFields = [...(project.dynamicFields || []), newField];
+
+  //   try {
+  //     const updatedProject = await updateProject(project._id, {
+  //       ...project,
+  //       dynamicFields: updatedFields,
+  //     });
+
+  //     // Preserve customer data
+  //     setProject((prev) => ({
+  //       ...updatedProject,
+  //       customerId: prev.customerId,
+  //     }));
+
+  //     setNewField({ name: "", value: "" });
+  //     toast.success("Information added successfully!");
+  //   } catch (error) {
+  //     console.error("Failed to add information:", error.message);
+  //     toast.error("Failed to add information.");
+  //   }
+  // };
 
   // const handleProductClick = (product) => {
   //   // Check if product is already in the checklist
@@ -271,14 +384,6 @@ const ProjectDetails = () => {
     setChecklist(updatedChecklist);
   };
 
-  // const calculateTotal = () => {
-  //   return checklist
-  //     .filter((item) => item.checked)
-  //     .reduce(
-  //       (sum, item) => sum + (item.productId?.unitPrice || item.price),
-  //       0
-  //     );
-  // };
   const calculateTotal = () => {
     return checklist
       .filter((item) => item.checked)
@@ -294,33 +399,133 @@ const ProjectDetails = () => {
         <h2>Project Information</h2>
         <ul>
           <li>
-            <strong>Serial Number:</strong> {project.serialNumber || "-"}
+            <strong>Serial Number:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="text"
+                name="serialNumber"
+                value={editableProject.serialNumber || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              project.serialNumber || "-"
+            )}
           </li>
           <li>
-            <strong>Customer Name:</strong> {project.customerId?.name || "-"}
+            <strong>Customer Name:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="text"
+                name="customerName"
+                value={editableProject.customerName || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              project.customerId?.name || "-"
+            )}
           </li>
+
           <li>
-            <strong>Customer Email:</strong> {project.customerId?.email || "-"}
+            <strong>Customer Email:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="email"
+                name="customerEmail"
+                value={editableProject.customerEmail || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              project.customerId?.email || "-"
+            )}
           </li>
+
           <li>
-            <strong>Customer Phone:</strong> {project.customerId?.phone || "-"}
+            <strong>Customer Phone:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="text"
+                name="customerPhone"
+                value={editableProject.customerPhone || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              project.customerId?.phone || "-"
+            )}
           </li>
+
           <li>
             <strong>Customer Address:</strong>{" "}
-            {project.customerId?.address || "-"}
+            {isEditing ? (
+              <input
+                type="text"
+                name="customerAddress"
+                value={editableProject.customerAddress || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              project.customerId?.address || "-"
+            )}
+          </li>
+
+          <li>
+            <strong>Truck Model:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="text"
+                name="truckModel"
+                value={editableProject.truckModel || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              project.truckModel || "-"
+            )}
           </li>
           <li>
-            <strong>Truck Model:</strong> {truck?.model || "-"}
+            <strong>Weight Capacity:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="number"
+                name="weightCapacity"
+                value={editableProject.weightCapacity || ""}
+                onChange={handleInputChange}
+              />
+            ) : (
+              `${project.weightCapacity || "-"} kg`
+            )}
           </li>
-          <li>
-            <strong>Weight Capacity:</strong> {truck?.weightCapacity || "-"} kg
-          </li>
+
+          {/* Render dynamic fields if available */}
           {project.dynamicFields?.map((field, index) => (
             <li key={index}>
-              <strong>{field.name}:</strong> {field.value || "-"}
+              <strong>{field.name}:</strong>{" "}
+              {isEditing ? (
+                <input
+                  type="text"
+                  name={`dynamic_${index}`}
+                  value={editableProject.dynamicFields[index]?.value || ""}
+                  onChange={(e) =>
+                    handleDynamicFieldChange(index, e.target.value)
+                  }
+                />
+              ) : (
+                field.value || "-"
+              )}
             </li>
           ))}
         </ul>
+
+        {/* Edit / Save Button Section */}
+        <div className="button-group">
+          {isEditing ? (
+            <button className="save-btn" onClick={handleSaveChanges}>
+              Save
+            </button>
+          ) : (
+            <button className="edit-btn" onClick={handleEditClick}>
+              Edit
+            </button>
+          )}
+        </div>
 
         {/* Notes Section */}
         <div className="notes-block">
