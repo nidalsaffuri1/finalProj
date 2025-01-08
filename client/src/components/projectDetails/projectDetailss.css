@@ -1,246 +1,208 @@
-/* General Container */
-.container {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr; /* Sidebar, Main (Tasks + Checklist), Right Block */
-  gap: 25px;
-  max-width: 1400px;
-  margin: 40px auto;
-  padding: 30px;
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
   background-color: #f4f4f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
-/* Sidebar - Project Info and Notes */
-.sidebar {
-  background-color: #ffffff;
-  padding: 25px;
+.container {
+  display: flex;
+  width: 90%;
+  max-width: 1400px;
+  background-color: #fff;
   border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.sidebar h2,
-.sidebar h3 {
-  margin-bottom: 20px;
-  color: #2c3e50;
-  font-size: 1.5rem;
+.sidebar {
+  width: 30%;
+  background-color: #2c3e50;
+  color: white;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.sidebar h2, .sidebar h3 {
+  margin-top: 0;
+  font-weight: 600;
+  border-bottom: 2px solid #1abc9c;
+  padding-bottom: 10px;
 }
 
 .sidebar ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
 }
 
-.sidebar ul li {
-  margin-bottom: 15px;
-  font-size: 1rem;
+.sidebar li {
+  margin: 15px 0;
 }
 
 .sidebar input[type="text"],
-.sidebar input[type="number"],
-.sidebar textarea {
+.sidebar input[type="email"],
+.sidebar input[type="number"] {
   width: 100%;
   padding: 10px;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
+  margin-top: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
 }
 
-.sidebar button {
-  margin-top: 20px;
-  padding: 12px 20px;
-  font-size: 1rem;
-  border-radius: 8px;
+.button-group {
+  margin-top: 30px;
+}
+
+.edit-btn, .save-btn, .delete-btn {
+  padding: 10px 20px;
+  font-size: 16px;
   border: none;
   cursor: pointer;
+  border-radius: 5px;
   transition: background-color 0.3s ease;
 }
 
-/* Edit and Save Buttons */
 .edit-btn {
-  background-color: #007bff;
+  background-color: #1abc9c;
   color: white;
 }
 
 .save-btn {
-  background-color: #28a745;
+  background-color: #3498db;
   color: white;
 }
 
-.edit-btn:hover,
-.save-btn:hover {
-  opacity: 0.9;
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+  margin-left: 10px;
 }
 
-/* Tasks and Checklist Section (Middle) */
-.main-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.notes-block textarea {
+  width: 100%;
+  height: 100px;
+  margin-top: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.add-info input[type="text"] {
+  width: 45%;
+  margin-right: 5%;
+}
+
+.add-info button {
+  padding: 10px 20px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 .block {
-  background-color: #ffffff;
+  flex-grow: 1;
   padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
 }
 
 .block h2 {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-  color: #333;
-}
-
-/* Task List */
-.task-list {
-  list-style: none;
-  padding: 0;
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #1abc9c;
+  padding-bottom: 10px;
 }
 
 .task-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  padding: 14px;
+  margin: 15px 0;
+  padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
-.toggle-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.toggle-btn:hover {
-  background-color: #218838;
-}
-
-.delete-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-
-/* Checklist */
-.checklist ul {
-  list-style: none;
-  padding: 0;
+.task-list button {
+  padding: 8px 15px;
 }
 
 .checklist-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 15px;
-  padding: 14px;
+  margin: 15px 0;
+  padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
-.quantity-input {
-  margin-left: 15px;
-  width: 70px;
-  text-align: center;
-  font-size: 1rem;
-  padding: 8px;
+.checklist-item input[type="number"] {
+  width: 60px;
+  margin: 0 10px;
+  padding: 5px;
 }
 
-.item-total {
-  margin-left: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-/* Available Products Section (Right) */
 .right-block {
-  background-color: #ffffff;
+  width: 25%;
+  background-color: #ecf0f1;
   padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.right-block h2 {
-  margin-bottom: 20px;
-}
-
-.product-list {
-  list-style: none;
-  padding: 0;
-}
-
-.product-item {
-  padding: 14px;
+.product-list li {
+  padding: 15px;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 14px;
+  border-radius: 5px;
+  margin-bottom: 15px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .product-item:hover {
-  background-color: #f1f1f1;
+  background-color: #dcdde1;
+}
+
+.right-block h3 {
+  margin-top: 20px;
 }
 
 .right-block input[type="text"],
 .right-block input[type="number"] {
   width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
 .right-block button {
-  margin-top: 20px;
-  padding: 12px 18px;
-  font-size: 1rem;
-  border-radius: 8px;
+  margin-top: 10px;
+  padding: 12px 20px;
+  background-color: #1abc9c;
+  color: white;
   border: none;
   cursor: pointer;
-  background-color: #007bff;
-  color: white;
+  border-radius: 5px;
 }
 
-.right-block button:hover {
-  background-color: #0056b3;
-}
-
-/* Notes Section */
-.notes-block textarea {
-  width: 100%;
-  height: 120px;
-  margin-top: 15px;
-  padding: 12px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-.notes-block button {
-  background-color: #007bff;
-  color: white;
-}
-
-.notes-block button:hover {
-  background-color: #0056b3;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .container {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
-  .sidebar,
-  .block,
-  .right-block {
-    max-width: 100%;
+  .sidebar, .right-block {
+    width: 100%;
+  }
+
+  .block {
+    padding: 20px;
   }
 }
