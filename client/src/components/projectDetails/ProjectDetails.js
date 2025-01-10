@@ -1137,151 +1137,159 @@ const ProjectDetails = () => {
           <button onClick={handleAddInformation}>+ Add</button>
         </div>
       </div>
-      {/* Tasks Collapsible Section */}
-      <div className="collapsible-section">
-        <div
-          className="collapsible-header"
-          onClick={() => setIsTasksOpen(!isTasksOpen)}
-        >
-          <h3>Tasks</h3>
-          <span>{isTasksOpen ? "▲" : "▼"}</span>
-        </div>
-        {isTasksOpen && (
-          <div className="collapsible-content">
-            <ul className="task-list">
-              {tasks.map((task) => (
-                <li key={task._id}>
-                  <span
-                    style={{
-                      textDecoration: task.isCompleted
-                        ? "line-through"
-                        : "none",
-                    }}
-                  >
-                    {task.name}
-                  </span>
-                  <button
-                    className="toggle-btn"
-                    onClick={() =>
-                      handleToggleTask(task._id, !task.isCompleted)
-                    }
-                  >
-                    {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
-                  </button>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDeleteTask(task._id)}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <input
-              type="text"
-              value={newTaskName}
-              onChange={(e) => setNewTaskName(e.target.value)}
-              placeholder="New Task"
-            />
-            <button className="add-task-btn" onClick={handleAddTask}>
-              Add Task
-            </button>
-          </div>
-        )}
-      </div>
 
-      {/* Available Products Collapsible Section */}
-      <div className="collapsible-section">
-        <div
-          className="collapsible-header"
-          onClick={() => setIsProductsOpen(!isProductsOpen)}
-        >
-          <h3>Available Products</h3>
-          <span>{isProductsOpen ? "▲" : "▼"}</span>
-        </div>
-        {isProductsOpen && (
-          <div className="collapsible-content">
-            <ul className="product-list">
-              {products.map((product) => (
-                <li
-                  key={product._id}
-                  onClick={() => handleProductClick(product)}
-                  className="product-item"
-                >
-                  {product.name} - ${product.unitPrice}
-                  <button
-                    className="delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering parent click
-                      handleDeleteProduct(product._id);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            {/* Add Product Form */}
-            <div className="add-product-form">
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={newProduct.name}
-                onChange={(e) =>
-                  setNewProduct((prev) => ({ ...prev, name: e.target.value }))
-                }
-              />
-              <input
-                type="number"
-                placeholder="Price"
-                value={newProduct.price}
-                onChange={(e) =>
-                  setNewProduct((prev) => ({ ...prev, price: e.target.value }))
-                }
-              />
-              <button className="add-product-btn" onClick={handleAddProduct}>
-                Add Product
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
       {/* Main Content */}
       <div className="main-content">
-        {/* Checklist Block */}
-        <div className="block">
-          <h2>Checklist</h2>
-          <div className="checklist">
-            <ul>
-              {checklist.map((item) => (
-                <li key={item.productId} className="checklist-item">
+        <div className="tasks-products-checklist">
+          {/* Tasks Section */}
+          <div className="collapsible-section">
+            <div
+              className="collapsible-header"
+              onClick={() => setIsTasksOpen(!isTasksOpen)}
+            >
+              <h3>Tasks</h3>
+              <span>{isTasksOpen ? "▲" : "▼"}</span>
+            </div>
+            {isTasksOpen && (
+              <div className="collapsible-content">
+                <ul className="task-list">
+                  {tasks.map((task) => (
+                    <li key={task._id}>
+                      <span
+                        style={{
+                          textDecoration: task.isCompleted
+                            ? "line-through"
+                            : "none",
+                        }}
+                      >
+                        {task.name}
+                      </span>
+                      <button
+                        className="toggle-btn"
+                        onClick={() =>
+                          handleToggleTask(task._id, !task.isCompleted)
+                        }
+                      >
+                        {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDeleteTask(task._id)}
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <input
+                  type="text"
+                  value={newTaskName}
+                  onChange={(e) => setNewTaskName(e.target.value)}
+                  placeholder="New Task"
+                />
+                <button className="add-task-btn" onClick={handleAddTask}>
+                  Add Task
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Checklist Section */}
+          <div className="block">
+            <h2>Checklist</h2>
+            <div className="checklist">
+              <ul>
+                {checklist.map((item) => (
+                  <li key={item.productId} className="checklist-item">
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() => handleChecklistToggle(item.productId)}
+                    />
+                    {item.productName} - ${item.price} each
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleQuantityChange(item.productId, e.target.value)
+                      }
+                      className="quantity-input"
+                    />
+                    <span className="item-total">
+                      = ${(item.price * item.quantity).toFixed(2)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div>
+                <strong>Total: ${calculateTotal().toFixed(2)}</strong>
+              </div>
+            </div>
+          </div>
+          {/* Available Products Section */}
+          <div className="collapsible-section">
+            <div
+              className="collapsible-header"
+              onClick={() => setIsProductsOpen(!isProductsOpen)}
+            >
+              <h3>Available Products</h3>
+              <span>{isProductsOpen ? "▲" : "▼"}</span>
+            </div>
+            {isProductsOpen && (
+              <div className="collapsible-content">
+                <ul className="product-list">
+                  {products.map((product) => (
+                    <li
+                      key={product._id}
+                      onClick={() => handleProductClick(product)}
+                      className="product-item"
+                    >
+                      {product.name} - ${product.unitPrice}
+                      <button
+                        className="delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering parent click
+                          handleDeleteProduct(product._id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="add-product-form">
                   <input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={() => handleChecklistToggle(item.productId)}
+                    type="text"
+                    placeholder="Product Name"
+                    value={newProduct.name}
+                    onChange={(e) =>
+                      setNewProduct((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
                   />
-                  {item.productName} - ${item.price} each
-                  {/* Quantity Input */}
                   <input
                     type="number"
-                    min="1"
-                    value={item.quantity}
+                    placeholder="Price"
+                    value={newProduct.price}
                     onChange={(e) =>
-                      handleQuantityChange(item.productId, e.target.value)
+                      setNewProduct((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
                     }
-                    className="quantity-input"
                   />
-                  {/* Total Price for the Item */}
-                  <span className="item-total">
-                    = ${(item.price * item.quantity).toFixed(2)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div>
-              <strong>Total: ${calculateTotal().toFixed(2)}</strong>
-            </div>
+                  <button
+                    className="add-product-btn"
+                    onClick={handleAddProduct}
+                  >
+                    Add Product
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
