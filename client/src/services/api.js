@@ -294,9 +294,58 @@ export const fetchTasks = async (projectId) => {
   }
 };
 
+// Fetch reusable tasks
+export const fetchReusableTasks = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/reusableTasks"); // Adjust endpoint as necessary
+    if (!response.ok) {
+      throw new Error("Failed to fetch reusable tasks.");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching reusable tasks:", error);
+    throw error;
+  }
+};
+
+// Create a new reusable task
+export const createReusableTask = async (taskData) => {
+  try {
+    const response = await fetch("http://localhost:5000/reusable-tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(taskData),
+    });
+    if (!response.ok) throw new Error("Failed to create reusable task");
+    return await response.json();
+  } catch (error) {
+    console.error("Error creating reusable task:", error);
+    throw error;
+  }
+};
+
+// Delete a reusable task
+export const deleteReusableTask = async (taskId) => {
+  try {
+    const response = await fetch(
+      `http://localhost:5000/reusable-tasks/${taskId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (!response.ok) throw new Error("Failed to delete reusable task");
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting reusable task:", error);
+    throw error;
+  }
+};
+
 // Create a new task
 export const createTask = async (taskData) => {
   try {
+    console.log("Creating Task with Data:", taskData); // Debug log
     const response = await fetch("http://localhost:5000/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -305,15 +354,15 @@ export const createTask = async (taskData) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to create task:", errorText);
+      console.error("Failed to create task:", errorText); // Log error details
       throw new Error(`Failed to create task: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log("Created Task Response:", data);
+    console.log("Created Task:", data); // Debug log
     return data;
   } catch (error) {
-    console.error("Error creating task:", error.message);
+    console.error("Error in createTask:", error.message);
     throw error;
   }
 };

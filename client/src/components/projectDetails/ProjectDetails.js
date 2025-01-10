@@ -644,6 +644,8 @@ import {
   createProduct,
   fetchProducts,
   deleteProduct,
+  deleteReusableTask,
+  // fetchReusableTasks, // Newly added function
 } from "../../services/api";
 import { toast } from "react-toastify";
 import "./projectDetailss.css";
@@ -653,15 +655,18 @@ const ProjectDetails = () => {
   const [project, setProject] = useState(null);
   const [truck, setTruck] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [reusableTasks, setReusableTasks] = useState([]); // Reusable tasks
   const [newTaskName, setNewTaskName] = useState("");
+  // const [newReusableTaskName, setNewReusableTaskName] = useState("");
   const [newField, setNewField] = useState({ name: "", value: "" });
   const [checklist, setChecklist] = useState([]);
   const [products, setProducts] = useState([]); // For right block
   const [newProduct, setNewProduct] = useState({ name: "", price: "" });
   const [isEditing, setIsEditing] = useState(false); // Toggle Edit Mode
   const [editableProject, setEditableProject] = useState({}); // Temporary editable project data
-  const [isTasksOpen, setIsTasksOpen] = useState(false); // Toggle for Tasks section
+  // const [isTasksOpen, setIsTasksOpen] = useState(false); // Toggle for Tasks section
   const [isProductsOpen, setIsProductsOpen] = useState(false); // Toggle for Products section
+  const [isReusableTasksOpen, setIsReusableTasksOpen] = useState(false); // Toggle for Reusable Tasks
 
   useEffect(() => {
     const loadProjectDetails = async () => {
@@ -669,6 +674,7 @@ const ProjectDetails = () => {
         const projectData = await fetchProjectById(id);
         const productData = await fetchProducts();
         const taskData = await fetchTasks(id);
+        // const availableReusableTasks = await fetchReusableTasks(); // Fetch reusable tasks
 
         setProject(projectData);
         setProducts(productData);
@@ -693,9 +699,73 @@ const ProjectDetails = () => {
       }
     };
 
+    const loadReusableTasks = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/reusable-tasks");
+        const data = await response.json();
+
+        // const tasks = await fetchReusableTasks();
+        setReusableTasks(data);
+      } catch (error) {
+        toast.error("Failed to load reusable tasks.");
+      }
+    };
+
     loadProjectDetails();
+    loadReusableTasks();
   }, [id]);
 
+  const handleAddReusableTaskToDaily = async (task) => {
+    try {
+      // Add the reusable task as a daily task
+      const newTask = await createTask({ projectId: id, name: task.name });
+      setTasks((prev) => [...prev, newTask]);
+      toast.success(`Task "${task.name}" added to daily tasks.`);
+    } catch (error) {
+      console.error("Failed to add reusable task to daily tasks:", error);
+      toast.error("Failed to add task.");
+    }
+  };
+
+  const handleAddNewReusableTask = async () => {
+    if (!newTaskName.trim()) {
+      toast.error("Task name cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/reusable-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newTaskName }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create reusable task: ${errorText}`);
+      }
+
+      const newTask = await response.json();
+      setReusableTasks((prev) => [...prev, newTask]); // Update state
+      setNewTaskName("");
+      toast.success("Reusable task added successfully!");
+    } catch (error) {
+      console.error("Error adding reusable task:", error);
+      toast.error("Failed to create reusable task.");
+    }
+  };
+
+  const handleDeleteReusableTask = async (taskId) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+      await deleteReusableTask(taskId);
+      setReusableTasks((prev) => prev.filter((task) => task._id !== taskId));
+      toast.success("Reusable task deleted.");
+    } catch (error) {
+      toast.error("Failed to delete reusable task.");
+    }
+  };
   const loadAvailableProducts = async () => {
     try {
       const productData = await fetchProducts();
@@ -703,6 +773,31 @@ const ProjectDetails = () => {
     } catch (error) {
       console.error("Failed to fetch products:", error);
       toast.error("Failed to load available products.");
+    }
+  };
+
+  const handleToggleTask = async (taskId, isCompleted) => {
+    try {
+      const updatedTask = await updateTask(taskId, { isCompleted });
+      setTasks((prev) =>
+        prev.map((task) => (task._id === taskId ? updatedTask : task))
+      );
+      toast.success("Task updated successfully!");
+    } catch (error) {
+      console.error("Failed to update task:", error);
+      toast.error("Failed to update task.");
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    try {
+      await deleteTask(taskId);
+      setTasks((prev) => prev.filter((task) => task._id !== taskId));
+      toast.success("Task deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      toast.error("Failed to delete task.");
     }
   };
 
@@ -826,43 +921,18 @@ const ProjectDetails = () => {
     setChecklist(updatedChecklist); // Update the state to reflect the changes
   };
 
-  const handleAddTask = async () => {
-    if (!newTaskName.trim()) return toast.error("Task name cannot be empty.");
-    try {
-      const task = await createTask({ projectId: id, name: newTaskName });
-      setTasks((prev) => [...prev, task]);
-      setNewTaskName("");
-      toast.success("Task added successfully!");
-    } catch (error) {
-      console.error("Failed to create task:", error);
-      toast.error("Failed to create task.");
-    }
-  };
-
-  const handleToggleTask = async (taskId, isCompleted) => {
-    try {
-      const updatedTask = await updateTask(taskId, { isCompleted });
-      setTasks((prev) =>
-        prev.map((task) => (task._id === taskId ? updatedTask : task))
-      );
-      toast.success("Task updated successfully!");
-    } catch (error) {
-      console.error("Failed to update task:", error);
-      toast.error("Failed to update task.");
-    }
-  };
-
-  const handleDeleteTask = async (taskId) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
-    try {
-      await deleteTask(taskId);
-      setTasks((prev) => prev.filter((task) => task._id !== taskId));
-      toast.success("Task deleted successfully!");
-    } catch (error) {
-      console.error("Failed to delete task:", error);
-      toast.error("Failed to delete task.");
-    }
-  };
+  // const handleAddTask = async () => {
+  //   if (!newTaskName.trim()) return toast.error("Task name cannot be empty.");
+  //   try {
+  //     const task = await createTask({ projectId: id, name: newTaskName });
+  //     setTasks((prev) => [...prev, task]);
+  //     setNewTaskName("");
+  //     toast.success("Task added successfully!");
+  //   } catch (error) {
+  //     console.error("Failed to create task:", error);
+  //     toast.error("Failed to create task.");
+  //   }
+  // };
 
   const handleAddInformation = async () => {
     if (!newField.name.trim() || !newField.value.trim()) {
@@ -1142,7 +1212,7 @@ const ProjectDetails = () => {
       <div className="main-content">
         <div className="tasks-products-checklist">
           {/* Tasks Section */}
-          <div className="collapsible-section">
+          {/* <div className="collapsible-section">
             <div
               className="collapsible-header"
               onClick={() => setIsTasksOpen(!isTasksOpen)}
@@ -1192,6 +1262,73 @@ const ProjectDetails = () => {
                 </button>
               </div>
             )}
+          </div> */}
+          <div className="container">
+            {/* Available Products Section */}
+            <div className="collapsible-section">
+              <div
+                className="collapsible-header"
+                onClick={() => setIsProductsOpen(!isProductsOpen)}
+              >
+                <h3>
+                  Available Products <span>{isProductsOpen ? "▲" : "▼"}</span>
+                </h3>
+              </div>
+              {isProductsOpen && (
+                <div className="collapsible-content">
+                  <ul className="product-list">
+                    {products.map((product) => (
+                      <li
+                        key={product._id}
+                        onClick={() => handleProductClick(product)}
+                        className="product-item"
+                      >
+                        {product.name} - ${product.unitPrice}
+                        <button
+                          className="delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering parent click
+                            handleDeleteProduct(product._id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="add-product-form">
+                    <input
+                      type="text"
+                      placeholder="Product Name"
+                      value={newProduct.name}
+                      onChange={(e) =>
+                        setNewProduct((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                    />
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={newProduct.price}
+                      onChange={(e) =>
+                        setNewProduct((prev) => ({
+                          ...prev,
+                          price: e.target.value,
+                        }))
+                      }
+                    />
+                    <button
+                      className="add-product-btn"
+                      onClick={handleAddProduct}
+                    >
+                      Add Product
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Checklist Section */}
@@ -1227,30 +1364,30 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
-          {/* Available Products Section */}
-          <div className="collapsible-section">
-            <div
-              className="collapsible-header"
-              onClick={() => setIsProductsOpen(!isProductsOpen)}
+          {/* Reusable Tasks Section */}
+          <div className="block">
+            <h2
+              onClick={() => setIsReusableTasksOpen((prev) => !prev)}
+              className="toggle-header"
             >
-              <h3>Available Products</h3>
-              <span>{isProductsOpen ? "▲" : "▼"}</span>
-            </div>
-            {isProductsOpen && (
-              <div className="collapsible-content">
-                <ul className="product-list">
-                  {products.map((product) => (
+              Available Tasks
+              <span>{isReusableTasksOpen ? "▲" : "▼"}</span>
+            </h2>
+            {isReusableTasksOpen && (
+              <div className="dropdown">
+                <ul>
+                  {reusableTasks.map((task) => (
                     <li
-                      key={product._id}
-                      onClick={() => handleProductClick(product)}
-                      className="product-item"
+                      key={task._id}
+                      onClick={() => handleAddReusableTaskToDaily(task)}
+                      className="dropdown-item"
                     >
-                      {product.name} - ${product.unitPrice}
+                      {task.name}
                       <button
                         className="delete-btn"
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering parent click
-                          handleDeleteProduct(product._id);
+                          e.stopPropagation(); // Prevent triggering the parent onClick
+                          handleDeleteReusableTask(task._id);
                         }}
                       >
                         Delete
@@ -1258,38 +1395,52 @@ const ProjectDetails = () => {
                     </li>
                   ))}
                 </ul>
-                <div className="add-product-form">
+                <div className="add-task-form">
                   <input
                     type="text"
-                    placeholder="Product Name"
-                    value={newProduct.name}
-                    onChange={(e) =>
-                      setNewProduct((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                  />
-                  <input
-                    type="number"
-                    placeholder="Price"
-                    value={newProduct.price}
-                    onChange={(e) =>
-                      setNewProduct((prev) => ({
-                        ...prev,
-                        price: e.target.value,
-                      }))
-                    }
+                    placeholder="New Reusable Task"
+                    value={newTaskName}
+                    onChange={(e) => setNewTaskName(e.target.value)}
                   />
                   <button
-                    className="add-product-btn"
-                    onClick={handleAddProduct}
+                    onClick={handleAddNewReusableTask}
+                    className="add-btn"
                   >
-                    Add Product
+                    Add Task
                   </button>
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Daily Tasks Section */}
+          <div className="block">
+            <h2>Daily Tasks</h2>
+            <ul>
+              {tasks.map((task) => (
+                <li key={task._id}>
+                  <span
+                    style={{
+                      textDecoration: task.isCompleted
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {task.name}
+                  </span>
+                  <button
+                    onClick={() =>
+                      handleToggleTask(task._id, !task.isCompleted)
+                    }
+                  >
+                    {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
+                  </button>
+                  <button onClick={() => handleDeleteTask(task._id)}>
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

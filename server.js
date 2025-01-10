@@ -8,6 +8,7 @@ const truckRoutes = require("./routes/truckRoutes");
 const productRoutes = require("./routes/productRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const projectStatusRoutes = require("./routes/projectStatusRoutes");
+const reusableTasksRoutes = require("./routes/reusableTasks");
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(
 );
 
 // Routes
+app.use("/reusable-tasks", reusableTasksRoutes);
 app.use("/projects", projectRoutes);
 app.use("/projectStatus", projectStatusRoutes);
 app.use("/products", productRoutes);

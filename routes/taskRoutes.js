@@ -20,40 +20,87 @@ const updateProjectStatus = async (projectId) => {
 };
 
 // Fetch tasks by project ID
+// router.get("/", async (req, res) => {
+//   try {
+//     const { projectId } = req.query; // Get the projectId from the query
+
+//     if (!projectId) {
+//       return res.status(400).json({ error: "Project ID is required" });
+//     }
+
+//     const tasks = await Task.find({ projectId }); // Fetch tasks linked to the project ID
+//     res.json(tasks); // Return the tasks
+//   } catch (err) {
+//     console.error("Error fetching tasks:", err.message);
+//     res.status(500).json({ error: "Failed to fetch tasks" });
+//   }
+// });
+
 router.get("/", async (req, res) => {
   try {
-    const { projectId } = req.query; // Get the projectId from the query
+    const { projectId } = req.query;
+    const tasks = projectId
+      ? await Task.find({ projectId }) // Fetch project-specific tasks
+      : await Task.find(); // Fetch all tasks
+    res.json(tasks);
+  } catch (error) {
+    console.error("Failed to fetch tasks:", error);
+    res.status(500).json({ message: "Failed to fetch tasks." });
+  }
+});
 
-    if (!projectId) {
-      return res.status(400).json({ error: "Project ID is required" });
-    }
-
-    const tasks = await Task.find({ projectId }); // Fetch tasks linked to the project ID
-    res.json(tasks); // Return the tasks
-  } catch (err) {
-    console.error("Error fetching tasks:", err.message);
-    res.status(500).json({ error: "Failed to fetch tasks" });
+// Get all reusable tasks
+router.get("/reusable", async (req, res) => {
+  try {
+    const tasks = await Task.find({ projectId: null }); // Tasks not linked to any project
+    res.json(tasks);
+  } catch (error) {
+    console.error("Failed to fetch reusable tasks:", error);
+    res.status(500).json({ message: "Failed to fetch reusable tasks." });
   }
 });
 
 // Create a task
+// router.post("/", async (req, res) => {
+//   try {
+//     const { projectId, name } = req.body;
+
+//     if (!projectId || !name) {
+//       return res
+//         .status(400)
+//         .json({ error: "Project ID and Task name are required" });
+//     }
+
+//     const task = new Task({ projectId, name });
+//     const savedTask = await task.save();
+
+//     res.status(201).json(savedTask);
+//   } catch (err) {
+//     console.error("Error creating task:", err.message);
+//     res.status(500).json({ error: "Failed to create task" });
+//   }
+// });
 router.post("/", async (req, res) => {
   try {
-    const { projectId, name } = req.body;
+    console.log("Request Body:", req.body); // Log the incoming request body
 
-    if (!projectId || !name) {
-      return res
-        .status(400)
-        .json({ error: "Project ID and Task name are required" });
+    const { name, projectId } = req.body;
+
+    // Validate input
+    if (!name) {
+      console.error("Task name is required");
+      return res.status(400).json({ error: "Task name is required" });
     }
 
-    const task = new Task({ projectId, name });
-    const savedTask = await task.save();
+    // Create a new task
+    const newTask = new Task({ name, projectId });
+    await newTask.save();
 
-    res.status(201).json(savedTask);
-  } catch (err) {
-    console.error("Error creating task:", err.message);
-    res.status(500).json({ error: "Failed to create task" });
+    console.log("Task Created:", newTask); // Log the created task
+    res.status(201).json(newTask);
+  } catch (error) {
+    console.error("Error creating task:", error); // Log the exact error
+    res.status(500).json({ error: "Failed to create task." });
   }
 });
 
