@@ -287,25 +287,97 @@ router.post("/", async (req, res) => {
 });
 
 // Update a project
+// router.put("/:id", async (req, res) => {
+//   try {
+//     const { checklist, ...updateData } = req.body;
+
+//     const updatedProject = await Project.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         ...updateData,
+//         checklist,
+//         dynamicFields, // Ensure dynamic fields are handled
+//         $set: {
+//           "truck.model": truckModel,
+//           "truck.weightCapacity": weightCapacity,
+//         },
+//       },
+//       { new: true }
+//     )
+//       .populate("checklist.productId", "name unitPrice")
+//       .populate("customerId", "name email phone address"); // <-- Re-populate customer
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: "Project not found" });
+//     }
+
+//     res.json(updatedProject);
+//   } catch (err) {
+//     console.error("Error updating project:", err.message);
+//     res.status(500).json({ error: "Failed to update project" });
+//   }
+// });
+// router.put("/:id", async (req, res) => {
+//   try {
+//     const {
+//       checklist,
+//       dynamicFields,
+//       truckModel,
+//       weightCapacity,
+//       ...updateData
+//     } = req.body;
+
+//     const updatedProject = await Project.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         ...updateData,
+//         checklist, // Save checklist
+//         dynamicFields,
+//         $set: {
+//           "truck.model": truckModel,
+//           "truck.weightCapacity": weightCapacity,
+//         },
+//       },
+//       { new: true } // Return the updated document
+//     )
+//       .populate("checklist.productId", "name unitPrice")
+//       .populate("customerId", "name email phone address");
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: "Project not found" });
+//     }
+
+//     res.json(updatedProject);
+//   } catch (err) {
+//     console.error("Error updating project:", err.message);
+//     res.status(500).json({ error: "Failed to update project" });
+//   }
+// });
+
+// router.delete("/:id", async (req, res) => {
+//   try {
+//     const result = await Project.findByIdAndDelete(req.params.id);
+//     if (!result) {
+//       return res.status(404).json({ error: "Project not found." });
+//     }
+//     res.json({ message: "Project deleted successfully." });
+//   } catch (err) {
+//     console.error("Error deleting project:", err.message);
+//     res.status(500).json({ error: "Failed to delete project." });
+//   }
+// });
+
 router.put("/:id", async (req, res) => {
   try {
     const { checklist, ...updateData } = req.body;
 
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
-      {
-        ...updateData,
-        checklist,
-        dynamicFields, // Ensure dynamic fields are handled
-        $set: {
-          "truck.model": truckModel,
-          "truck.weightCapacity": weightCapacity,
-        },
-      },
+      { ...updateData, checklist },
       { new: true }
     )
-      .populate("checklist.productId", "name unitPrice")
-      .populate("customerId", "name email phone address"); // <-- Re-populate customer
+      .populate("checklist.productId", "name unitPrice") // Populate product details
+      .populate("customerId", "name email phone address");
 
     if (!updatedProject) {
       return res.status(404).json({ message: "Project not found" });
@@ -315,44 +387,6 @@ router.put("/:id", async (req, res) => {
   } catch (err) {
     console.error("Error updating project:", err.message);
     res.status(500).json({ error: "Failed to update project" });
-  }
-});
-
-router.put("/:id/notes", async (req, res) => {
-  try {
-    const { notes } = req.body;
-
-    if (!notes) {
-      return res.status(400).json({ error: "Notes cannot be empty." });
-    }
-
-    const updatedProject = await Project.findByIdAndUpdate(
-      req.params.id,
-      { notes },
-      { new: true }
-    ).populate("customerId", "name email phone address");
-
-    if (!updatedProject) {
-      return res.status(404).json({ message: "Project not found" });
-    }
-
-    res.json(updatedProject);
-  } catch (err) {
-    console.error("Error updating notes:", err.message);
-    res.status(500).json({ error: "Failed to update notes" });
-  }
-});
-
-router.delete("/:id", async (req, res) => {
-  try {
-    const result = await Project.findByIdAndDelete(req.params.id);
-    if (!result) {
-      return res.status(404).json({ error: "Project not found." });
-    }
-    res.json({ message: "Project deleted successfully." });
-  } catch (err) {
-    console.error("Error deleting project:", err.message);
-    res.status(500).json({ error: "Failed to delete project." });
   }
 });
 

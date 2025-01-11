@@ -679,6 +679,7 @@ const ProjectDetails = () => {
         setProject(projectData);
         setProducts(productData);
         setTasks(taskData);
+        setChecklist(projectData.checklist || []);
 
         if (projectData.truckId) {
           const truckData = await fetchTruckById(projectData.truckId);
@@ -691,7 +692,6 @@ const ProjectDetails = () => {
           }));
         }
 
-        setChecklist(projectData.checklist || []);
         loadAvailableProducts();
       } catch (error) {
         console.error("Error loading project details:", error.message);
@@ -867,6 +867,19 @@ const ProjectDetails = () => {
       toast.error("Failed to update project.");
     }
   };
+  const saveChecklistToBackend = async (updatedChecklist) => {
+    try {
+      const updatedProject = await updateProject(project._id, {
+        ...project,
+        checklist: updatedChecklist,
+      });
+      setProject(updatedProject);
+      toast.success("Checklist saved successfully!");
+    } catch (error) {
+      console.error("Failed to save checklist:", error);
+      toast.error("Failed to save checklist.");
+    }
+  };
 
   const handleDeleteProduct = async (productId) => {
     if (!window.confirm("Are you sure you want to delete this product?"))
@@ -881,6 +894,24 @@ const ProjectDetails = () => {
     }
   };
 
+  const handleAddToChecklist = (product) => {
+    if (checklist.some((item) => item.productId === product._id)) {
+      toast.warn(`${product.name} is already in the checklist.`);
+      return;
+    }
+
+    const newItem = {
+      productId: product._id,
+      productName: product.name,
+      price: product.unitPrice,
+      quantity: 1,
+      checked: true,
+    };
+
+    const updatedChecklist = [...checklist, newItem];
+    setChecklist(updatedChecklist);
+    saveChecklistToBackend(updatedChecklist); // Save changes to backend
+  };
   const handleChecklistToggle = async (productId) => {
     const existingItem = checklist.find(
       (item) =>
@@ -900,6 +931,7 @@ const ProjectDetails = () => {
           productId: productToAdd._id,
           productName: productToAdd.name,
           price: productToAdd.unitPrice,
+          quantity: 1, // Default quantity
           checked: true,
         },
       ];
@@ -912,14 +944,68 @@ const ProjectDetails = () => {
       });
       setChecklist(updatedChecklist);
       setProject(updatedProject);
-      toast.success("Checklist updated!");
+      toast.success(existingItem ? "Product removed!" : "Checklist updated!");
     } catch (error) {
       console.error("Failed to update checklist:", error);
       toast.error("Failed to update checklist.");
     }
-
-    setChecklist(updatedChecklist); // Update the state to reflect the changes
   };
+
+  const handleQuantityChange = (productId, quantity) => {
+    const updatedChecklist = checklist.map((item) =>
+      item.productId === productId
+        ? { ...item, quantity: Math.max(1, parseInt(quantity) || 1) } // Ensure minimum of 1
+        : item
+    );
+    setChecklist(updatedChecklist);
+    saveChecklistToBackend(updatedChecklist);
+  };
+
+  const calculateTotal = () =>
+    checklist
+      .filter((item) => item.checked)
+      .reduce((total, item) => total + item.price * item.quantity, 0);
+
+  // const handleChecklistToggle = async (productId) => {
+  //   const existingItem = checklist.find(
+  //     (item) =>
+  //       item.productId === productId || item.productId?._id === productId
+  //   );
+
+  //   let updatedChecklist;
+  //   if (existingItem) {
+  //     updatedChecklist = checklist.map((item) =>
+  //       item.productId === productId
+  //         ? { ...item, checked: !item.checked }
+  //         : item
+  //     );
+  //   } else {
+  //     const productToAdd = products.find((prod) => prod._id === productId);
+  //     updatedChecklist = [
+  //       ...checklist,
+  //       {
+  //         productId: productToAdd._id,
+  //         productName: productToAdd.name,
+  //         price: productToAdd.unitPrice,
+  //         quantity: 1, // Default quantity
+  //         checked: true,
+  //       },
+  //     ];
+  //   }
+
+  //   try {
+  //     const updatedProject = await updateProject(project._id, {
+  //       ...project,
+  //       checklist: updatedChecklist,
+  //     });
+  //     setChecklist(updatedProject.checklist || []);
+  //     setProject(updatedProject);
+  //     toast.success("Checklist updated!");
+  //   } catch (error) {
+  //     console.error("Failed to update checklist:", error);
+  //     toast.error("Failed to update checklist.");
+  //   }
+  // };
 
   // const handleAddTask = async () => {
   //   if (!newTaskName.trim()) return toast.error("Task name cannot be empty.");
@@ -960,26 +1046,26 @@ const ProjectDetails = () => {
     }
   };
 
-  const handleProductClick = (product) => {
-    const existingItemIndex = checklist.findIndex(
-      (item) => item.productId === product._id
-    );
+  // const handleProductClick = (product) => {
+  //   const existingItemIndex = checklist.findIndex(
+  //     (item) => item.productId === product._id
+  //   );
 
-    if (existingItemIndex === -1) {
-      // Add product with default quantity and ensure price is treated correctly
-      const newItem = {
-        productId: product._id,
-        productName: product.name,
-        price: product.unitPrice || 0, // Ensure price is set
-        quantity: 1, // Ensure default quantity
-        checked: true,
-      };
-      setChecklist((prev) => [...prev, newItem]);
-      toast.success(`${product.name} added to checklist.`);
-    } else {
-      toast.warn(`${product.name} is already in the checklist.`);
-    }
-  };
+  //   if (existingItemIndex === -1) {
+  //     // Add product with default quantity and ensure price is treated correctly
+  //     const newItem = {
+  //       productId: product._id,
+  //       productName: product.name,
+  //       price: product.unitPrice || 0, // Ensure price is set
+  //       quantity: 1, // Ensure default quantity
+  //       checked: true,
+  //     };
+  //     setChecklist((prev) => [...prev, newItem]);
+  //     toast.success(`${product.name} added to checklist.`);
+  //   } else {
+  //     toast.warn(`${product.name} is already in the checklist.`);
+  //   }
+  // };
 
   // Handle Adding New Product
   const handleAddProduct = async () => {
@@ -1022,20 +1108,20 @@ const ProjectDetails = () => {
     }
   };
 
-  const handleQuantityChange = (productId, newQuantity) => {
-    const updatedChecklist = checklist.map((item) =>
-      item.productId === productId
-        ? { ...item, quantity: parseInt(newQuantity) || 1 }
-        : item
-    );
-    setChecklist(updatedChecklist);
-  };
+  // const handleQuantityChange = (productId, newQuantity) => {
+  //   const updatedChecklist = checklist.map((item) =>
+  //     item.productId === productId
+  //       ? { ...item, quantity: parseInt(newQuantity) || 1 }
+  //       : item
+  //   );
+  //   setChecklist(updatedChecklist);
+  // };
 
-  const calculateTotal = () => {
-    return checklist
-      .filter((item) => item.checked)
-      .reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  };
+  // const calculateTotal = () => {
+  //   return checklist
+  //     .filter((item) => item.checked)
+  //     .reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+  // };
 
   if (!project) return <p>Loading...</p>;
   console.log(project);
@@ -1280,7 +1366,7 @@ const ProjectDetails = () => {
                     {products.map((product) => (
                       <li
                         key={product._id}
-                        onClick={() => handleProductClick(product)}
+                        onClick={() => handleAddToChecklist(product)} // Use handleAddToChecklist here
                         className="product-item"
                       >
                         {product.name} - ${product.unitPrice}
@@ -1334,36 +1420,34 @@ const ProjectDetails = () => {
           {/* Checklist Section */}
           <div className="block">
             <h2>Checklist</h2>
-            <div className="checklist">
-              <ul>
-                {checklist.map((item) => (
-                  <li key={item.productId} className="checklist-item">
-                    <input
-                      type="checkbox"
-                      checked={item.checked}
-                      onChange={() => handleChecklistToggle(item.productId)}
-                    />
-                    {item.productName} - ${item.price} each
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(item.productId, e.target.value)
-                      }
-                      className="quantity-input"
-                    />
-                    <span className="item-total">
-                      = ${(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div>
-                <strong>Total: ${calculateTotal().toFixed(2)}</strong>
-              </div>
-            </div>
+            <ul>
+              {checklist.map((item) => (
+                <li key={item.productId} className="checklist-item">
+                  <input
+                    type="checkbox"
+                    checked={item.checked}
+                    onChange={() => handleChecklistToggle(item.productId)}
+                  />
+                  {item.productName} - ${item.price} each
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      handleQuantityChange(item.productId, e.target.value)
+                    }
+                    className="quantity-input"
+                  />
+                  <span className="item-total">
+                    = ${(item.price * item.quantity).toFixed(2)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <strong>Total: ${calculateTotal().toFixed(2)}</strong>
           </div>
+
           {/* Reusable Tasks Section */}
           <div className="block">
             <h2

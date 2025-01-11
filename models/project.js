@@ -22,6 +22,7 @@ const ProjectSchema = new mongoose.Schema({
       productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
       productName: { type: String },
       price: { type: Number },
+      quantity: { type: Number, default: 1 }, // Ensure 'quantity' has a default
       checked: { type: Boolean, default: false },
     },
   ],
