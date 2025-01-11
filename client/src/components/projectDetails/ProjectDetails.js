@@ -966,60 +966,6 @@ const ProjectDetails = () => {
       .filter((item) => item.checked)
       .reduce((total, item) => total + item.price * item.quantity, 0);
 
-  // const handleChecklistToggle = async (productId) => {
-  //   const existingItem = checklist.find(
-  //     (item) =>
-  //       item.productId === productId || item.productId?._id === productId
-  //   );
-
-  //   let updatedChecklist;
-  //   if (existingItem) {
-  //     updatedChecklist = checklist.map((item) =>
-  //       item.productId === productId
-  //         ? { ...item, checked: !item.checked }
-  //         : item
-  //     );
-  //   } else {
-  //     const productToAdd = products.find((prod) => prod._id === productId);
-  //     updatedChecklist = [
-  //       ...checklist,
-  //       {
-  //         productId: productToAdd._id,
-  //         productName: productToAdd.name,
-  //         price: productToAdd.unitPrice,
-  //         quantity: 1, // Default quantity
-  //         checked: true,
-  //       },
-  //     ];
-  //   }
-
-  //   try {
-  //     const updatedProject = await updateProject(project._id, {
-  //       ...project,
-  //       checklist: updatedChecklist,
-  //     });
-  //     setChecklist(updatedProject.checklist || []);
-  //     setProject(updatedProject);
-  //     toast.success("Checklist updated!");
-  //   } catch (error) {
-  //     console.error("Failed to update checklist:", error);
-  //     toast.error("Failed to update checklist.");
-  //   }
-  // };
-
-  // const handleAddTask = async () => {
-  //   if (!newTaskName.trim()) return toast.error("Task name cannot be empty.");
-  //   try {
-  //     const task = await createTask({ projectId: id, name: newTaskName });
-  //     setTasks((prev) => [...prev, task]);
-  //     setNewTaskName("");
-  //     toast.success("Task added successfully!");
-  //   } catch (error) {
-  //     console.error("Failed to create task:", error);
-  //     toast.error("Failed to create task.");
-  //   }
-  // };
-
   const handleAddInformation = async () => {
     if (!newField.name.trim() || !newField.value.trim()) {
       return toast.error("Both name and value are required.");
@@ -1045,27 +991,6 @@ const ProjectDetails = () => {
       toast.error("Failed to add information.");
     }
   };
-
-  // const handleProductClick = (product) => {
-  //   const existingItemIndex = checklist.findIndex(
-  //     (item) => item.productId === product._id
-  //   );
-
-  //   if (existingItemIndex === -1) {
-  //     // Add product with default quantity and ensure price is treated correctly
-  //     const newItem = {
-  //       productId: product._id,
-  //       productName: product.name,
-  //       price: product.unitPrice || 0, // Ensure price is set
-  //       quantity: 1, // Ensure default quantity
-  //       checked: true,
-  //     };
-  //     setChecklist((prev) => [...prev, newItem]);
-  //     toast.success(`${product.name} added to checklist.`);
-  //   } else {
-  //     toast.warn(`${product.name} is already in the checklist.`);
-  //   }
-  // };
 
   // Handle Adding New Product
   const handleAddProduct = async () => {
@@ -1107,21 +1032,6 @@ const ProjectDetails = () => {
       toast.error("Failed to save notes.");
     }
   };
-
-  // const handleQuantityChange = (productId, newQuantity) => {
-  //   const updatedChecklist = checklist.map((item) =>
-  //     item.productId === productId
-  //       ? { ...item, quantity: parseInt(newQuantity) || 1 }
-  //       : item
-  //   );
-  //   setChecklist(updatedChecklist);
-  // };
-
-  // const calculateTotal = () => {
-  //   return checklist
-  //     .filter((item) => item.checked)
-  //     .reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  // };
 
   if (!project) return <p>Loading...</p>;
   console.log(project);
@@ -1297,124 +1207,70 @@ const ProjectDetails = () => {
       {/* Main Content */}
       <div className="main-content">
         <div className="tasks-products-checklist">
-          {/* Tasks Section */}
-          {/* <div className="collapsible-section">
+          {/* Available Products Section */}
+          <div className="collapsible-section">
             <div
               className="collapsible-header"
-              onClick={() => setIsTasksOpen(!isTasksOpen)}
+              onClick={() => setIsProductsOpen(!isProductsOpen)}
             >
-              <h3>Tasks</h3>
-              <span>{isTasksOpen ? "▲" : "▼"}</span>
+              <h3>
+                Available Products <span>{isProductsOpen ? "▲" : "▼"}</span>
+              </h3>
             </div>
-            {isTasksOpen && (
+            {isProductsOpen && (
               <div className="collapsible-content">
-                <ul className="task-list">
-                  {tasks.map((task) => (
-                    <li key={task._id}>
-                      <span
-                        style={{
-                          textDecoration: task.isCompleted
-                            ? "line-through"
-                            : "none",
-                        }}
-                      >
-                        {task.name}
-                      </span>
-                      <button
-                        className="toggle-btn"
-                        onClick={() =>
-                          handleToggleTask(task._id, !task.isCompleted)
-                        }
-                      >
-                        {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
-                      </button>
+                <ul className="product-list">
+                  {products.map((product) => (
+                    <li
+                      key={product._id}
+                      onClick={() => handleAddToChecklist(product)} // Use handleAddToChecklist here
+                      className="product-item"
+                    >
+                      {product.name} - ${product.unitPrice}
                       <button
                         className="delete-btn"
-                        onClick={() => handleDeleteTask(task._id)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering parent click
+                          handleDeleteProduct(product._id);
+                        }}
                       >
                         Delete
                       </button>
                     </li>
                   ))}
                 </ul>
-                <input
-                  type="text"
-                  value={newTaskName}
-                  onChange={(e) => setNewTaskName(e.target.value)}
-                  placeholder="New Task"
-                />
-                <button className="add-task-btn" onClick={handleAddTask}>
-                  Add Task
-                </button>
+                <div className="add-product-form">
+                  <input
+                    type="text"
+                    placeholder="Product Name"
+                    value={newProduct.name}
+                    onChange={(e) =>
+                      setNewProduct((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    type="number"
+                    placeholder="Price"
+                    value={newProduct.price}
+                    onChange={(e) =>
+                      setNewProduct((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
+                    }
+                  />
+                  <button
+                    className="add-product-btn"
+                    onClick={handleAddProduct}
+                  >
+                    Add Product
+                  </button>
+                </div>
               </div>
             )}
-          </div> */}
-          <div className="container">
-            {/* Available Products Section */}
-            <div className="collapsible-section">
-              <div
-                className="collapsible-header"
-                onClick={() => setIsProductsOpen(!isProductsOpen)}
-              >
-                <h3>
-                  Available Products <span>{isProductsOpen ? "▲" : "▼"}</span>
-                </h3>
-              </div>
-              {isProductsOpen && (
-                <div className="collapsible-content">
-                  <ul className="product-list">
-                    {products.map((product) => (
-                      <li
-                        key={product._id}
-                        onClick={() => handleAddToChecklist(product)} // Use handleAddToChecklist here
-                        className="product-item"
-                      >
-                        {product.name} - ${product.unitPrice}
-                        <button
-                          className="delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent triggering parent click
-                            handleDeleteProduct(product._id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="add-product-form">
-                    <input
-                      type="text"
-                      placeholder="Product Name"
-                      value={newProduct.name}
-                      onChange={(e) =>
-                        setNewProduct((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                    />
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      value={newProduct.price}
-                      onChange={(e) =>
-                        setNewProduct((prev) => ({
-                          ...prev,
-                          price: e.target.value,
-                        }))
-                      }
-                    />
-                    <button
-                      className="add-product-btn"
-                      onClick={handleAddProduct}
-                    >
-                      Add Product
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Checklist Section */}
