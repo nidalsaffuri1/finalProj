@@ -811,6 +811,7 @@ const ProjectDetails = () => {
       truckModel: project.truckModel || truck?.model || "",
       weightCapacity: project.weightCapacity || truck?.weightCapacity || "",
     });
+    console.log("Editable Project:", editableProject); // Add this line
     setIsEditing(true);
   };
 
@@ -820,10 +821,7 @@ const ProjectDetails = () => {
     if (name === "truckModel" || name === "weightCapacity") {
       setEditableProject((prev) => ({
         ...prev,
-        truckId: {
-          ...prev.truckId,
-          [name === "truckModel" ? "model" : "weightCapacity"]: value,
-        },
+        [name]: value,
       }));
     } else {
       setEditableProject((prev) => ({
@@ -851,22 +849,27 @@ const ProjectDetails = () => {
         weightCapacity: editableProject.weightCapacity,
       };
 
+      console.log("Payload sent to updateProject:", updatedProject);
+
       const result = await updateProject(project._id, updatedProject);
 
-      // Reflect updated truck data in project state
-      setProject((prev) => ({
-        ...prev,
-        truckModel: result.truckModel,
-        weightCapacity: result.weightCapacity,
-      }));
+      console.log("Updated Project Response from Backend:", result);
 
+      // Update the state with the updated project
+      setProject(result);
+
+      // Clear the editableProject state and exit edit mode
+      setEditableProject({});
       setIsEditing(false);
+
+      console.log("State after Update:", result);
       toast.success("Project updated successfully!");
     } catch (error) {
       console.error("Failed to update project:", error);
       toast.error("Failed to update project.");
     }
   };
+
   const saveChecklistToBackend = async (updatedChecklist) => {
     try {
       const updatedProject = await updateProject(project._id, {
@@ -1055,6 +1058,7 @@ const ProjectDetails = () => {
               project.serialNumber || "-"
             )}
           </li>
+
           <li>
             <strong>Customer Name:</strong>{" "}
             {isEditing ? (
@@ -1121,7 +1125,7 @@ const ProjectDetails = () => {
                 onChange={handleInputChange}
               />
             ) : (
-              project.truckModel || "-"
+              project.truckModel || truck?.model || "-"
             )}
           </li>
           <li>
@@ -1134,19 +1138,19 @@ const ProjectDetails = () => {
                 onChange={handleInputChange}
               />
             ) : (
-              `${project.weightCapacity || "-"} kg`
+              `${project.weightCapacity || truck?.weightCapacity || "-"} kg`
             )}
           </li>
 
-          {/* Render dynamic fields if available */}
-          {project.dynamicFields?.map((field, index) => (
+          {/* Dynamic Fields */}
+          {editableProject.dynamicFields?.map((field, index) => (
             <li key={index}>
               <strong>{field.name}:</strong>{" "}
               {isEditing ? (
                 <input
                   type="text"
                   name={`dynamic_${index}`}
-                  value={editableProject.dynamicFields[index]?.value || ""}
+                  value={field.value || ""}
                   onChange={(e) =>
                     handleDynamicFieldChange(index, e.target.value)
                   }

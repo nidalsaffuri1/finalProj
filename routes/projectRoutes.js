@@ -179,14 +179,39 @@ router.get("/", async (req, res) => {
 // });
 
 // Fetch a single project by ID
+// router.get("/:id", async (req, res) => {
+//   try {
+//     const project = await Project.findById(req.params.id)
+//       .populate("customerId", "name email phone address")
+//       .populate("checklist.productId", "name unitPrice"); // Ensure proper population
+
+//     if (!project) {
+//       return res.status(404).json({ message: "Project not found" });
+//     }
+
+//     res.json(project);
+//   } catch (err) {
+//     console.error("Error fetching project by ID:", err.message);
+//     res.status(500).json({ error: "Failed to fetch project by ID" });
+//   }
+// });
 router.get("/:id", async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
       .populate("customerId", "name email phone address")
-      .populate("checklist.productId", "name unitPrice"); // Ensure proper population
+      .populate("checklist.productId", "name unitPrice");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
+    }
+
+    // Explicitly include truck model and weight capacity if truck exists
+    if (project.truckId) {
+      const truck = await Truck.findById(project.truckId);
+      if (truck) {
+        project.truckModel = truck.model;
+        project.weightCapacity = truck.weightCapacity;
+      }
     }
 
     res.json(project);
@@ -366,18 +391,35 @@ router.post("/", async (req, res) => {
 //     res.status(500).json({ error: "Failed to delete project." });
 //   }
 // });
-
 router.put("/:id", async (req, res) => {
   try {
-    const { checklist, ...updateData } = req.body;
+    const {
+      serialNumber,
+      customerId,
+      truckId,
+      notes,
+      checklist,
+      dynamicFields,
+    } = req.body;
+
+    console.log("Request Body:", req.body);
 
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
-      { ...updateData, checklist },
+      {
+        serialNumber,
+        customerId,
+        truckId,
+        notes,
+        checklist,
+        dynamicFields,
+      },
       { new: true }
     )
-      .populate("checklist.productId", "name unitPrice") // Populate product details
+      .populate("checklist.productId", "name unitPrice")
       .populate("customerId", "name email phone address");
+
+    console.log("Updated Project in DB:", updatedProject);
 
     if (!updatedProject) {
       return res.status(404).json({ message: "Project not found" });
@@ -389,5 +431,28 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update project" });
   }
 });
+
+// router.put("/:id", async (req, res) => {
+//   try {
+//     const { checklist, ...updateData } = req.body;
+
+//     const updatedProject = await Project.findByIdAndUpdate(
+//       req.params.id,
+//       { ...updateData, checklist },
+//       { new: true }
+//     )
+//       .populate("checklist.productId", "name unitPrice") // Populate product details
+//       .populate("customerId", "name email phone address");
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: "Project not found" });
+//     }
+
+//     res.json(updatedProject);
+//   } catch (err) {
+//     console.error("Error updating project:", err.message);
+//     res.status(500).json({ error: "Failed to update project" });
+//   }
+// });
 
 module.exports = router;
