@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./currentProjectss.css";
+import { useNavigate } from "react-router-dom";
 
 const CurrentProjects = () => {
   const [projects, setProjects] = useState([]);
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,6 +87,14 @@ const CurrentProjects = () => {
 
   return (
     <div className="projects-container">
+      <div className="project-details">
+        <div className="navigation-button">
+          <button onClick={() => navigate("/")}>
+            Back to Projects
+          </button>
+        </div>
+        {/* Rest of your component */}
+      </div>
       <h1>Current Projects</h1>
 
       {/* Search Bar */}

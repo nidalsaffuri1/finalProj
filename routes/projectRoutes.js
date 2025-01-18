@@ -379,37 +379,60 @@ router.post("/", async (req, res) => {
 //   }
 // });
 
-// router.delete("/:id", async (req, res) => {
-//   try {
-//     const result = await Project.findByIdAndDelete(req.params.id);
-//     if (!result) {
-//       return res.status(404).json({ error: "Project not found." });
-//     }
-//     res.json({ message: "Project deleted successfully." });
-//   } catch (err) {
-//     console.error("Error deleting project:", err.message);
-//     res.status(500).json({ error: "Failed to delete project." });
-//   }
-// });
+router.delete("/:id", async (req, res) => {
+  try {
+    const result = await Project.findByIdAndDelete(req.params.id);
+    if (!result) {
+      return res.status(404).json({ error: "Project not found." });
+    }
+    res.json({ message: "Project deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting project:", err.message);
+    res.status(500).json({ error: "Failed to delete project." });
+  }
+});
+
 router.put("/:id", async (req, res) => {
   try {
     const {
       serialNumber,
       customerId,
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerAddress,
       truckId,
+      truckModel,
+      weightCapacity,
       notes,
       checklist,
       dynamicFields,
     } = req.body;
 
-    console.log("Request Body:", req.body);
+    // Update customer details if provided
+    if (customerId) {
+      await Customer.findByIdAndUpdate(customerId, {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+        address: customerAddress,
+      });
+    }
 
+    // Update truck details if truckId is provided
+    if (truckId) {
+      await Truck.findByIdAndUpdate(truckId, {
+        model: truckModel,
+        weightCapacity,
+      });
+    }
+
+    // Update the project details
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
       {
         serialNumber,
-        customerId,
-        truckId,
+        truckId, // Ensure truckId is updated
         notes,
         checklist,
         dynamicFields,

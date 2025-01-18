@@ -2,6 +2,9 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import "./style.css";
 import "./components/homePage/homePagee.css";
+import LoginPage from "./pages/loginPage";
+import Dashboard from "./pages/dashboard";
+import PrivateRoute from "./components/privateRoute";
 import CreateProjectForm from "./components/createProjectForm/CreateProjectForm";
 import CurrentProjects from "./components/currentProjects/CurrentProjects";
 import ProjectDetails from "./components/projectDetails/ProjectDetails";
@@ -47,6 +50,15 @@ const App = () => {
     <Router>
       <ToastContainer />
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
         <Route path="/" element={<HomePage />} />
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/current-projects" element={<CurrentProjects />} />

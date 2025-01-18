@@ -104,13 +104,21 @@ export const createProject = async (projectData) => {
 // Update a project
 export const updateProject = async (id, projectData) => {
   try {
-    console.log("Updating project with data:", projectData);
+    // Ensure `truckModel` and `weightCapacity` are part of the payload
+    const payload = {
+      ...projectData,
+      truckModel: projectData.truckModel, // Include truck model
+      weightCapacity: projectData.weightCapacity, // Include weight capacity
+    };
+
+    console.log("Updating project with data:", payload);
+
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(projectData), // Send all updated fields
+      body: JSON.stringify(payload), // Send all updated fields
     });
 
     if (!response.ok) {
@@ -127,6 +135,7 @@ export const updateProject = async (id, projectData) => {
     throw error;
   }
 };
+
 
 // services/api.js
 

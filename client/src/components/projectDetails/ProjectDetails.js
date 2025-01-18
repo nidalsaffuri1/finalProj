@@ -631,6 +631,7 @@
 // export default ProjectDetails;
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import {
   fetchProjectById,
@@ -652,6 +653,7 @@ import "./projectDetailss.css";
 
 const ProjectDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [truck, setTruck] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -845,24 +847,17 @@ const ProjectDetails = () => {
         ...editableProject,
         customerId: project.customerId?._id,
         truckId: project.truckId,
+        customerName: editableProject.customerName, // Include customer details
+        customerEmail: editableProject.customerEmail,
+        customerPhone: editableProject.customerPhone,
+        customerAddress: editableProject.customerAddress,
         truckModel: editableProject.truckModel,
         weightCapacity: editableProject.weightCapacity,
       };
 
-      console.log("Payload sent to updateProject:", updatedProject);
-
       const result = await updateProject(project._id, updatedProject);
-
-      console.log("Updated Project Response from Backend:", result);
-
-      // Update the state with the updated project
-      setProject(result);
-
-      // Clear the editableProject state and exit edit mode
-      setEditableProject({});
+      setProject(result); // Update state with backend response
       setIsEditing(false);
-
-      console.log("State after Update:", result);
       toast.success("Project updated successfully!");
     } catch (error) {
       console.error("Failed to update project:", error);
@@ -1041,10 +1036,19 @@ const ProjectDetails = () => {
 
   return (
     <div className="container">
+      <div className="project-details">
+        <div className="navigation-button">
+          <button onClick={() => navigate("/current-projects")}>
+            Back to Projects
+          </button>
+        </div>
+        {/* Rest of your component */}
+      </div>
       {/* Sidebar */}
       <div className="sidebar">
         <h2>Project Information</h2>
         <ul>
+          {/* Serial Number */}
           <li>
             <strong>Serial Number:</strong>{" "}
             {isEditing ? (
@@ -1059,6 +1063,7 @@ const ProjectDetails = () => {
             )}
           </li>
 
+          {/* Customer Information */}
           <li>
             <strong>Customer Name:</strong>{" "}
             {isEditing ? (
@@ -1072,7 +1077,6 @@ const ProjectDetails = () => {
               project.customerId?.name || "-"
             )}
           </li>
-
           <li>
             <strong>Customer Email:</strong>{" "}
             {isEditing ? (
@@ -1086,7 +1090,6 @@ const ProjectDetails = () => {
               project.customerId?.email || "-"
             )}
           </li>
-
           <li>
             <strong>Customer Phone:</strong>{" "}
             {isEditing ? (
@@ -1100,7 +1103,6 @@ const ProjectDetails = () => {
               project.customerId?.phone || "-"
             )}
           </li>
-
           <li>
             <strong>Customer Address:</strong>{" "}
             {isEditing ? (
@@ -1115,6 +1117,7 @@ const ProjectDetails = () => {
             )}
           </li>
 
+          {/* Truck Information */}
           <li>
             <strong>Truck Model:</strong>{" "}
             {isEditing ? (
@@ -1144,7 +1147,8 @@ const ProjectDetails = () => {
 
           {/* Dynamic Fields */}
           {editableProject.dynamicFields?.map((field, index) => (
-            <li key={index}>
+            <li key={field._id || `${field.name}_${index}`}>
+              {/* Unique keys: use `_id` or fallback to name + index */}
               <strong>{field.name}:</strong>{" "}
               {isEditing ? (
                 <input
@@ -1162,7 +1166,7 @@ const ProjectDetails = () => {
           ))}
         </ul>
 
-        {/* Edit / Save Button Section */}
+        {/* Edit/Save Button Section */}
         <div className="button-group">
           {isEditing ? (
             <button className="save-btn" onClick={handleSaveChanges}>

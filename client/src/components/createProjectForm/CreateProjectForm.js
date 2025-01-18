@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { createProject, fetchCustomerById } from "../../services/api"; // Import the new function
 import "./createProjectFormm.css";
 
 const CreateProjectForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     serialNumber: "",
     customerName: "",
@@ -88,6 +90,14 @@ const CreateProjectForm = () => {
 
   return (
     <div className="container">
+      <div className="project-details">
+        <div className="navigation-button">
+          <button onClick={() => navigate("/")}>
+            Back to Projects
+          </button>
+        </div>
+        {/* Rest of your component */}
+      </div>
       <h1>
         {customerId
           ? "Add Project for Existing Customer"
