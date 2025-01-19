@@ -1,5 +1,6 @@
 const express = require("express");
 const Project = require("../models/project");
+const authenticateToken = require("../middleware/authenticateToken");
 const Truck = require("../models/truck");
 const Customer = require("../models/customer");
 const Product = require("../models/product");
@@ -7,7 +8,7 @@ const Task = require("../models/task");
 const router = express.Router();
 
 // Fetch all projects (with pagination, sorting, and search)
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const {
       page = 1,
@@ -15,11 +16,15 @@ router.get("/", async (req, res) => {
       sortBy = "createdAt",
       order = "desc",
       search = "",
+      userId,
     } = req.query;
 
     const sortOrder = order === "asc" ? 1 : -1;
 
     const query = {};
+    if (userId) {
+      query.userId = userId; // Filter by userId
+    }
     if (search) {
       const customers = await Customer.find({
         name: { $regex: search, $options: "i" },

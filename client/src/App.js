@@ -16,7 +16,6 @@ const HomePage = () => (
     <p className="homepage-subtitle">
       Efficiently manage your trucks, tasks, and projects.
     </p>
-
     <div className="button-group">
       <Link to="/create-project">
         <button className="primary-btn">Create Project</button>
@@ -27,23 +26,6 @@ const HomePage = () => (
     </div>
   </div>
 );
-
-const CreateProject = () => (
-  <div>
-    <CreateProjectForm /> {/* Use the form component here */}
-  </div>
-);
-
-const CurrentProjectsPage = () => (
-  <div>
-    <CurrentProjects />
-  </div>
-);
-
-// Inside <Routes> in App.js:
-<Route path="/current-projects" element={<CurrentProjectsPage />} />;
-
-<Route path="/projects/:id" element={<ProjectDetails />} />;
 
 const App = () => {
   return (
@@ -60,9 +42,9 @@ const App = () => {
           }
         />
         <Route path="/" element={<HomePage />} />
-        <Route path="/create-project" element={<CreateProject />} />
+        <Route path="/create-project" element={<CreateProjectForm />} />
         <Route path="/current-projects" element={<CurrentProjects />} />
-        <Route path="/projects/:id" element={<ProjectDetails />} />{" "}
+        <Route path="/projects/:id" element={<ProjectDetails />} />
       </Routes>
     </Router>
   );

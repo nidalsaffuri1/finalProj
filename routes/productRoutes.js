@@ -1,9 +1,10 @@
 const express = require("express");
 const Product = require("../models/product");
+const authMiddleware = require("../middleware/authMiddltware");
 const router = express.Router();
 
 // Create a new product
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { name, description, quantityAvailable, unitPrice } = req.body;
     const product = new Product({
@@ -21,7 +22,7 @@ router.post("/", async (req, res) => {
 });
 
 // Get all products
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const products = await Product.find();
     res.json(products);
@@ -32,7 +33,7 @@ router.get("/", async (req, res) => {
 });
 
 // Update a product
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const { name, description, quantityAvailable, unitPrice } = req.body;
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -48,7 +49,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete a product
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: "Product deleted successfully" });

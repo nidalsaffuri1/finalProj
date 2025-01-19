@@ -7,6 +7,7 @@ const taskSchema = new mongoose.Schema({
     required: false, // Optional for reusable tasks
   },
   name: { type: String, required: true },
+  projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
   isCompleted: { type: Boolean, default: false },
   completedAt: { type: Date },
   createdAt: { type: Date, default: Date.now },

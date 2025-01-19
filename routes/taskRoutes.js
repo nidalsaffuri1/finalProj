@@ -1,6 +1,7 @@
 const express = require("express");
 const Task = require("../models/task");
 const ProjectStatus = require("../models/projectStatus");
+const authMiddleware = require("../middleware/authMiddltware");
 const router = express.Router();
 
 // Helper function to check and update project status
@@ -19,24 +20,7 @@ const updateProjectStatus = async (projectId) => {
   }
 };
 
-// Fetch tasks by project ID
-// router.get("/", async (req, res) => {
-//   try {
-//     const { projectId } = req.query; // Get the projectId from the query
-
-//     if (!projectId) {
-//       return res.status(400).json({ error: "Project ID is required" });
-//     }
-
-//     const tasks = await Task.find({ projectId }); // Fetch tasks linked to the project ID
-//     res.json(tasks); // Return the tasks
-//   } catch (err) {
-//     console.error("Error fetching tasks:", err.message);
-//     res.status(500).json({ error: "Failed to fetch tasks" });
-//   }
-// });
-
-router.get("/", async (req, res) => {
+router.get("/",authMiddleware , async (req, res) => {
   try {
     const { projectId } = req.query;
     const tasks = projectId

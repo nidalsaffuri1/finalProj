@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/projects";
+// const API_URL = "http://localhost:5000/projects";
+const API_URL = "http://localhost:5000/products";
 
 // Fetch all projects with pagination, sorting, and search
 export const fetchProjects = async (
@@ -52,7 +53,12 @@ export const fetchProjectById = async (id) => {
 
 export const fetchProducts = async () => {
   try {
-    const response = await fetch("http://localhost:5000/products");
+    const response = await fetch("http://localhost:5000/products", {
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch products");
     }
@@ -135,7 +141,6 @@ export const updateProject = async (id, projectData) => {
     throw error;
   }
 };
-
 
 // services/api.js
 
@@ -281,11 +286,19 @@ export const fetchTruckById = async (truckId) => {
   }
 };
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export const fetchTasks = async (projectId) => {
   try {
     console.log("Fetching tasks for projectId:", projectId);
     const response = await fetch(
-      `http://localhost:5000/tasks?projectId=${projectId}`
+      `http://localhost:5000/tasks?projectId=${projectId}`,
+      {
+        headers: getAuthHeaders(),
+      }
     );
 
     if (!response.ok) {
