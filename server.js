@@ -10,6 +10,7 @@ const productRoutes = require("./routes/productRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const projectStatusRoutes = require("./routes/projectStatusRoutes");
 const reusableTasksRoutes = require("./routes/reusableTasks");
+const authRoutes = require("./routes/auth");
 
 dotenv.config();
 
@@ -33,6 +34,8 @@ app.use("/products", productRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/trucks", truckRoutes);
 app.use("/customers", customerRoutes);
+app.use("/auth", authRoutes); // This will make routes accessible via /auth/...
+
 
 // Connect to MongoDB
 mongoose
