@@ -27,12 +27,20 @@ const CurrentProjects = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch Projects
   useEffect(() => {
     const loadProjects = async () => {
-      setLoading(true);
+      setLoading(true); // Set loading state
+      const token = localStorage.getItem("token"); // Get token from local storage
+
+      if (!token) {
+        toast.error("No token found. Please login first.");
+        setLoading(false);
+        return;
+      }
+
       try {
         const data = await fetchProjects(
+          token, // Pass the token
           currentPage,
           projectsPerPage,
           "createdAt",
@@ -51,11 +59,42 @@ const CurrentProjects = () => {
         console.error("Error fetching projects:", error.message);
         toast.error("Failed to load projects.");
       } finally {
-        setLoading(false);
+        setLoading(false); // Reset loading state
       }
     };
+
     loadProjects();
-  }, [currentPage, debouncedSearchQuery]);
+  }, [currentPage, debouncedSearchQuery, projectsPerPage]);
+
+  // Fetch Projects
+  // useEffect(() => {
+  //   const loadProjects = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const data = await fetchProjects(
+  //         currentPage,
+  //         projectsPerPage,
+  //         "createdAt",
+  //         "desc",
+  //         debouncedSearchQuery
+  //       );
+
+  //       if (data.projects?.length) {
+  //         setProjects(data.projects || []);
+  //         setTotalPages(data.totalPages || 1);
+  //       } else {
+  //         setProjects([]);
+  //         toast.warn("No projects found.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching projects:", error.message);
+  //       toast.error("Failed to load projects.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   loadProjects();
+  // }, [currentPage, debouncedSearchQuery]);
 
   // Delete Handler
   const handleDelete = async (id) => {
@@ -89,9 +128,7 @@ const CurrentProjects = () => {
     <div className="projects-container">
       <div className="project-details">
         <div className="navigation-button">
-          <button onClick={() => navigate("/")}>
-            Back to Projects
-          </button>
+          <button onClick={() => navigate("/")}>Back to Projects</button>
         </div>
         {/* Rest of your component */}
       </div>

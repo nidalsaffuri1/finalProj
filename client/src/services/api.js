@@ -1,36 +1,70 @@
-// const API_URL = "http://localhost:5000/projects";
+import axios from "axios";
 const API_URL = "http://localhost:5000/products";
+const API_BASE_URL = "http://localhost:5000";
 
 // Fetch all projects with pagination, sorting, and search
 export const fetchProjects = async (
+  token,
   page = 1,
   limit = 10,
-  sortBy = "createdAt",
-  order = "desc",
   search = ""
 ) => {
   try {
-    const url = `${API_URL}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(
-      search
-    )}`;
-    console.log("Fetching Projects from URL:", url);
+    const response = await axios.get(`${API_BASE_URL}/projects`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token for authentication
+      },
+      params: {
+        page,
+        limit,
+        search, // Include search in the request if provided
+      },
+    });
 
-    const response = await fetch(url);
+    // Log the response for debugging (optional)
+    console.log("Projects Response Data:", response.data);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error Response:", errorText);
-      throw new Error(`Failed to fetch projects: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Projects Response Data:", data);
-    return data;
+    return response.data; // Return the data directly
   } catch (error) {
     console.error("Error fetching projects:", error.message);
-    throw error;
+
+    // Optionally, log detailed error information
+    if (error.response) {
+      console.error("Response Error Data:", error.response.data);
+    }
+
+    throw error; // Throw the error to handle it in the caller
   }
 };
+// export const fetchProjects = async (
+//   page = 1,
+//   limit = 10,
+//   sortBy = "createdAt",
+//   order = "desc",
+//   search = ""
+// ) => {
+//   try {
+//     const url = `${API_URL}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(
+//       search
+//     )}`;
+//     console.log("Fetching Projects from URL:", url);
+
+//     const response = await fetch(url);
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Error Response:", errorText);
+//       throw new Error(`Failed to fetch projects: ${errorText}`);
+//     }
+
+//     const data = await response.json();
+//     console.log("Projects Response Data:", data);
+//     return data;
+//   } catch (error) {
+//     console.error("Error fetching projects:", error.message);
+//     throw error;
+//   }
+// };
 
 // Fetch project by ID
 export const fetchProjectById = async (id) => {
@@ -290,31 +324,54 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
-
 export const fetchTasks = async (projectId) => {
   try {
     console.log("Fetching tasks for projectId:", projectId);
-    const response = await fetch(
-      `http://localhost:5000/tasks?projectId=${projectId}`,
-      {
-        headers: getAuthHeaders(),
-      }
-    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to fetch tasks:", errorText);
-      throw new Error(`Failed to fetch tasks: ${errorText}`);
-    }
+    // Axios request with token authentication and query params
+    const response = await axios.get(`${API_BASE_URL}/tasks`, {
+      headers: getAuthHeaders(),
+      params: { projectId }, // Automatically appends projectId to the URL as a query parameter
+    });
 
-    const data = await response.json();
-    console.log("Fetched Tasks:", data);
-    return data;
+    console.log("Fetched Tasks:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching tasks:", error.message);
+    if (error.response) {
+      console.error(
+        "Failed to fetch tasks:",
+        error.response.data.message || error.response.data
+      );
+    } else {
+      console.error("Error fetching tasks:", error.message);
+    }
     throw error;
   }
 };
+// export const fetchTasks = async (projectId) => {
+//   try {
+//     console.log("Fetching tasks for projectId:", projectId);
+//     const response = await fetch(
+//       `http://localhost:5000/tasks?projectId=${projectId}`,
+//       {
+//         headers: getAuthHeaders(),
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Failed to fetch tasks:", errorText);
+//       throw new Error(`Failed to fetch tasks: ${errorText}`);
+//     }
+
+//     const data = await response.json();
+//     console.log("Fetched Tasks:", data);
+//     return data;
+//   } catch (error) {
+//     console.error("Error fetching tasks:", error.message);
+//     throw error;
+//   }
+// };
 
 // Fetch reusable tasks
 export const fetchReusableTasks = async () => {

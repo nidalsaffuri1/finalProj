@@ -20,12 +20,27 @@ const updateProjectStatus = async (projectId) => {
   }
 };
 
-router.get("/",authMiddleware , async (req, res) => {
+// router.get("/",authMiddleware , async (req, res) => {
+//   try {
+//     const { projectId } = req.query;
+//     const tasks = projectId
+//       ? await Task.find({ projectId }) // Fetch project-specific tasks
+//       : await Task.find(); // Fetch all tasks
+//     res.json(tasks);
+//   } catch (error) {
+//     console.error("Failed to fetch tasks:", error);
+//     res.status(500).json({ message: "Failed to fetch tasks." });
+//   }
+// });
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.query;
+    const companyId = req.user.companyId; // Extract companyId from the token
+
     const tasks = projectId
-      ? await Task.find({ projectId }) // Fetch project-specific tasks
-      : await Task.find(); // Fetch all tasks
+      ? await Task.find({ projectId, companyId }) // Fetch tasks for the specific project and company
+      : await Task.find({ companyId }); // Fetch all tasks for the company
+
     res.json(tasks);
   } catch (error) {
     console.error("Failed to fetch tasks:", error);
