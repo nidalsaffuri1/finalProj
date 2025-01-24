@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Company = require("../models/company");
+const prepopulateProducts = require("../populate");
 
 const router = express.Router();
 
@@ -50,7 +51,11 @@ router.post("/companies/register", async (req, res) => {
     console.log("Hashed Password:", hashedPassword); // Log hashed password
 
     const company = new Company({ name, email, password: hashedPassword });
-    await company.save();
+    const savedCompany = await company.save();
+
+    // Prepopulate products for the new company
+    await prepopulateProducts(savedCompany._id);
+    console.log("Saved company ID:", savedCompany._id);
 
     res.status(201).json({ message: "Company registered successfully" });
   } catch (error) {

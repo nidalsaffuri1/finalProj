@@ -29,8 +29,9 @@ const CurrentProjects = () => {
 
   useEffect(() => {
     const loadProjects = async () => {
-      setLoading(true); // Set loading state
-      const token = localStorage.getItem("token"); // Get token from local storage
+      setLoading(true);
+      const token = localStorage.getItem("token"); // Fetch the token from localStorage
+      console.log("Token in localStorage:", token);
 
       if (!token) {
         toast.error("No token found. Please login first.");
@@ -39,18 +40,19 @@ const CurrentProjects = () => {
       }
 
       try {
+        console.log("Calling fetchProjects with token:", token);
         const data = await fetchProjects(
-          token, // Pass the token
+          token,
           currentPage,
           projectsPerPage,
-          "createdAt",
-          "desc",
           debouncedSearchQuery
         );
 
+        console.log("Fetched Projects Data:", data);
+
         if (data.projects?.length) {
-          setProjects(data.projects || []);
-          setTotalPages(data.totalPages || 1);
+          setProjects(data.projects);
+          setTotalPages(data.totalPages);
         } else {
           setProjects([]);
           toast.warn("No projects found.");
@@ -59,19 +61,27 @@ const CurrentProjects = () => {
         console.error("Error fetching projects:", error.message);
         toast.error("Failed to load projects.");
       } finally {
-        setLoading(false); // Reset loading state
+        setLoading(false);
       }
     };
 
     loadProjects();
-  }, [currentPage, debouncedSearchQuery, projectsPerPage]);
+  }, [currentPage, debouncedSearchQuery]);
 
-  // Fetch Projects
   // useEffect(() => {
   //   const loadProjects = async () => {
-  //     setLoading(true);
+  //     setLoading(true); // Set loading state
+  //     const token = localStorage.getItem("token"); // Get token from local storage
+
+  //     if (!token) {
+  //       toast.error("No token found. Please login first.");
+  //       setLoading(false);
+  //       return;
+  //     }
+
   //     try {
   //       const data = await fetchProjects(
+  //         token, // Pass the token
   //         currentPage,
   //         projectsPerPage,
   //         "createdAt",
@@ -90,13 +100,13 @@ const CurrentProjects = () => {
   //       console.error("Error fetching projects:", error.message);
   //       toast.error("Failed to load projects.");
   //     } finally {
-  //       setLoading(false);
+  //       setLoading(false); // Reset loading state
   //     }
   //   };
-  //   loadProjects();
-  // }, [currentPage, debouncedSearchQuery]);
 
-  // Delete Handler
+  //   loadProjects();
+  // }, [currentPage, debouncedSearchQuery, projectsPerPage]);
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this project?")) {
       try {

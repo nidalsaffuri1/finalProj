@@ -62,12 +62,15 @@ const CreateProjectForm = () => {
         customerId: customerId || undefined, // Pass customerId if available
       };
 
-      console.log("Submitting Project Data:", projectData);
+      // Remove checklist if empty
+      if (!projectData.checklist || projectData.checklist.length === 0) {
+        delete projectData.checklist;
+      }
 
+      console.log("Submitting Project Data:", projectData);
       await createProject(projectData); // Call API to create the project
 
       setMessage("Project created successfully!");
-
       if (!customerId) {
         // Reset form only if it's a new customer
         setFormData({
@@ -88,13 +91,45 @@ const CreateProjectForm = () => {
     }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const projectData = {
+  //       ...formData,
+  //       customerId: customerId || undefined, // Pass customerId if available
+  //     };
+
+  //     console.log("Submitting Project Data:", projectData);
+
+  //     await createProject(projectData); // Call API to create the project
+
+  //     setMessage("Project created successfully!");
+
+  //     if (!customerId) {
+  //       // Reset form only if it's a new customer
+  //       setFormData({
+  //         serialNumber: "",
+  //         customerName: "",
+  //         customerEmail: "",
+  //         customerPhone: "",
+  //         customerAddress: "",
+  //         truckModel: "",
+  //         truckRegistrationNumber: "",
+  //         truckWeightCapacity: "",
+  //         notes: "",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating project:", error);
+  //     setMessage("Failed to create project. Please try again.");
+  //   }
+  // };
+
   return (
     <div className="container">
       <div className="project-details">
         <div className="navigation-button">
-          <button onClick={() => navigate("/")}>
-            Back to Projects
-          </button>
+          <button onClick={() => navigate("/")}>Back to Projects</button>
         </div>
         {/* Rest of your component */}
       </div>
