@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 require("dotenv").config();
 const cors = require("cors");
+const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/projectRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const truckRoutes = require("./routes/truckRoutes");
@@ -34,8 +35,7 @@ app.use("/products", productRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/trucks", truckRoutes);
 app.use("/customers", customerRoutes);
-app.use("/auth", authRoutes); // This will make routes accessible via /auth/...
-
+app.use("/auth", authRoutes);
 
 // Connect to MongoDB
 mongoose

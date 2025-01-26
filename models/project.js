@@ -28,6 +28,18 @@ const ProjectSchema = new mongoose.Schema({
       value: { type: String, required: false },
     },
   ],
+  dailyTasks: [
+    {
+      taskId: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
+      taskName: { type: String },
+      isCompleted: { type: Boolean, default: false },
+    },
+  ],
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Company",
+    required: true,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

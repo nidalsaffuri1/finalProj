@@ -1,95 +1,128 @@
-// const API_URL = "http://localhost:5000/projects";
-const API_URL = "http://localhost:5000/products";
+import axios from "axios";
+const API_URL = "http://localhost:5000/";
 
 // Fetch all projects with pagination, sorting, and search
 export const fetchProjects = async (
+  token,
   page = 1,
   limit = 10,
-  sortBy = "createdAt",
-  order = "desc",
   search = ""
 ) => {
   try {
-    const url = `${API_URL}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(
-      search
-    )}`;
-    console.log("Fetching Projects from URL:", url);
+    const response = await axios.get(`${API_URL}projects`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token for authentication
+      },
+      params: {
+        page,
+        limit,
+        search, // Include search in the request if provided
+      },
+    });
 
-    const response = await fetch(url);
+    // Log the response for debugging (optional)
+    console.log("Projects Response Data:", response.data);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error Response:", errorText);
-      throw new Error(`Failed to fetch projects: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Projects Response Data:", data);
-    return data;
+    return response.data; // Return the data directly
   } catch (error) {
     console.error("Error fetching projects:", error.message);
-    throw error;
+
+    // Optionally, log detailed error information
+    if (error.response) {
+      console.error("Response Error Data:", error.response.data);
+    }
+
+    throw error; // Throw the error to handle it in the caller
   }
 };
+// export const fetchProjects = async (
+//   page = 1,
+//   limit = 10,
+//   sortBy = "createdAt",
+//   order = "desc",
+//   search = ""
+// ) => {
+//   try {
+//     const url = `${API_URL}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(
+//       search
+//     )}`;
+//     console.log("Fetching Projects from URL:", url);
+
+//     const response = await fetch(url);
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Error Response:", errorText);
+//       throw new Error(`Failed to fetch projects: ${errorText}`);
+//     }
+
+//     const data = await response.json();
+//     console.log("Projects Response Data:", data);
+//     return data;
+//   } catch (error) {
+//     console.error("Error fetching projects:", error.message);
+//     throw error;
+//   }
+// };
 
 // Fetch project by ID
 export const fetchProjectById = async (id) => {
   try {
-    console.log("Fetching project by ID:", id);
-    const response = await fetch(`${API_URL}/${id}`);
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to fetch project details:", errorText);
-      throw new Error(`Failed to fetch project details: ${errorText}`);
-    }
-    const data = await response.json();
-    console.log("Fetched Project Details:", data);
-    return data;
+    const token = localStorage.getItem("token"); // Ensure token is passed
+    if (!token) throw new Error("No token available");
+
+    const response = await axios.get(`${API_URL}projects/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Pass token for authentication
+      },
+    });
+
+    console.log("Fetched Project Details:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Error in fetchProjectById:", error.message);
+    console.error("Error fetching project details:", error.message);
+    if (error.response) {
+      console.error("API Error Response:", error.response.data);
+    }
     throw error;
   }
 };
 
 export const fetchProducts = async () => {
   try {
-    const response = await fetch("http://localhost:5000/products", {
-      headers: {
-        ...getAuthHeaders(),
-        "Content-Type": "application/json",
-      },
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token available");
+
+    const response = await fetch(`${API_URL}products`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
+
     if (!response.ok) {
-      throw new Error("Failed to fetch products");
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch products: ${errorText}`);
     }
-    const data = await response.json();
-    return data;
+
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("Error fetching products:", error.message);
     throw error;
   }
 };
 
 export const createProject = async (projectData) => {
   try {
-    console.log("Creating project with data:", projectData);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token available");
+    }
 
-    // If customerId exists, strip out redundant fields to avoid validation issues
-    const dataToSend = projectData.customerId
-      ? {
-          serialNumber: projectData.serialNumber,
-          truckModel: projectData.truckModel,
-          truckRegistrationNumber: projectData.truckRegistrationNumber,
-          truckWeightCapacity: projectData.truckWeightCapacity,
-          notes: projectData.notes,
-          customerId: projectData.customerId,
-        }
-      : projectData; // Send full data if no customerId
-
-    const response = await fetch(API_URL, {
+    const response = await fetch(`${API_URL}projects`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(dataToSend),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include token for authentication
+      },
+      body: JSON.stringify(projectData),
     });
 
     if (!response.ok) {
@@ -108,68 +141,49 @@ export const createProject = async (projectData) => {
 };
 
 // Update a project
-export const updateProject = async (id, projectData) => {
+
+export const updateProject = async (projectId, updatedData) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    throw new Error("No token available");
+  }
+
   try {
-    // Ensure `truckModel` and `weightCapacity` are part of the payload
-    const payload = {
-      ...projectData,
-      truckModel: projectData.truckModel, // Include truck model
-      weightCapacity: projectData.weightCapacity, // Include weight capacity
-    };
+    const response = await axios.put(
+      `${API_URL}projects/${projectId}`,
+      updatedData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-    console.log("Updating project with data:", payload);
-
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload), // Send all updated fields
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to update project:", errorText);
-      throw new Error(`Failed to update project: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Updated Project Response:", data);
-    return data;
+    return response.data; // Return the updated project
   } catch (error) {
-    console.error("Error updating project:", error.message);
+    console.error(
+      "Error updating project:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
 
 // services/api.js
-
 export const deleteProduct = async (productId) => {
-  try {
-    const response = await fetch(
-      `http://localhost:5000/products/${productId}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to delete product");
-    }
-
-    const data = await response.json();
-    console.log("Product deleted:", data);
-    return data;
-  } catch (error) {
-    console.error("Error deleting product:", error.message);
-    throw error;
-  }
+  const token = localStorage.getItem("token");
+  const response = await axios.delete(`${API_URL}products/${productId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
 };
 
 // Delete a project
 export const deleteProject = async (id) => {
   try {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await fetch(`${API_URL}projects/${id}`, {
       method: "DELETE",
     });
 
@@ -187,27 +201,19 @@ export const deleteProject = async (id) => {
     throw error;
   }
 };
-
-// Create a new product
 export const createProduct = async (productData) => {
   try {
-    const response = await fetch("http://localhost:5000/products", {
-      method: "POST",
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token available");
+
+    const response = await axios.post(`${API_URL}products`, productData, {
       headers: {
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(productData),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to create product:", errorText);
-      throw new Error(`Failed to create product: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Created Product Response:", data);
-    return data;
+    console.log("Product Created:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Error creating product:", error.message);
     throw error;
@@ -252,7 +258,7 @@ export const fetchCustomerById = async (customerId) => {
 // Update project notes
 export const updateNotes = async (projectId, notes) => {
   try {
-    const response = await fetch(`${API_URL}/${projectId}/notes`, {
+    const response = await fetch(`${API_URL}${projectId}/notes`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -290,28 +296,27 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
-
 export const fetchTasks = async (projectId) => {
   try {
     console.log("Fetching tasks for projectId:", projectId);
-    const response = await fetch(
-      `http://localhost:5000/tasks?projectId=${projectId}`,
-      {
-        headers: getAuthHeaders(),
-      }
-    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to fetch tasks:", errorText);
-      throw new Error(`Failed to fetch tasks: ${errorText}`);
-    }
+    // Axios request with token authentication and query params
+    const response = await axios.get(`${API_URL}tasks`, {
+      headers: getAuthHeaders(),
+      params: { projectId }, // Automatically appends projectId to the URL as a query parameter
+    });
 
-    const data = await response.json();
-    console.log("Fetched Tasks:", data);
-    return data;
+    console.log("Fetched Tasks:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching tasks:", error.message);
+    if (error.response) {
+      console.error(
+        "Failed to fetch tasks:",
+        error.response.data.message || error.response.data
+      );
+    } else {
+      console.error("Error fetching tasks:", error.message);
+    }
     throw error;
   }
 };

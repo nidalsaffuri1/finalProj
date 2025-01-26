@@ -27,22 +27,32 @@ const CurrentProjects = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch Projects
   useEffect(() => {
     const loadProjects = async () => {
       setLoading(true);
+      const token = localStorage.getItem("token"); // Fetch the token from localStorage
+      console.log("Token in localStorage:", token);
+
+      if (!token) {
+        toast.error("No token found. Please login first.");
+        setLoading(false);
+        return;
+      }
+
       try {
+        console.log("Calling fetchProjects with token:", token);
         const data = await fetchProjects(
+          token,
           currentPage,
           projectsPerPage,
-          "createdAt",
-          "desc",
           debouncedSearchQuery
         );
 
+        console.log("Fetched Projects Data:", data);
+
         if (data.projects?.length) {
-          setProjects(data.projects || []);
-          setTotalPages(data.totalPages || 1);
+          setProjects(data.projects);
+          setTotalPages(data.totalPages);
         } else {
           setProjects([]);
           toast.warn("No projects found.");
@@ -54,10 +64,49 @@ const CurrentProjects = () => {
         setLoading(false);
       }
     };
+
     loadProjects();
   }, [currentPage, debouncedSearchQuery]);
 
-  // Delete Handler
+  // useEffect(() => {
+  //   const loadProjects = async () => {
+  //     setLoading(true); // Set loading state
+  //     const token = localStorage.getItem("token"); // Get token from local storage
+
+  //     if (!token) {
+  //       toast.error("No token found. Please login first.");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       const data = await fetchProjects(
+  //         token, // Pass the token
+  //         currentPage,
+  //         projectsPerPage,
+  //         "createdAt",
+  //         "desc",
+  //         debouncedSearchQuery
+  //       );
+
+  //       if (data.projects?.length) {
+  //         setProjects(data.projects || []);
+  //         setTotalPages(data.totalPages || 1);
+  //       } else {
+  //         setProjects([]);
+  //         toast.warn("No projects found.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching projects:", error.message);
+  //       toast.error("Failed to load projects.");
+  //     } finally {
+  //       setLoading(false); // Reset loading state
+  //     }
+  //   };
+
+  //   loadProjects();
+  // }, [currentPage, debouncedSearchQuery, projectsPerPage]);
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this project?")) {
       try {
@@ -89,9 +138,7 @@ const CurrentProjects = () => {
     <div className="projects-container">
       <div className="project-details">
         <div className="navigation-button">
-          <button onClick={() => navigate("/")}>
-            Back to Projects
-          </button>
+          <button onClick={() => navigate("/")}>Back to Projects</button>
         </div>
         {/* Rest of your component */}
       </div>
