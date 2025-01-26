@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import {
   fetchProjectById,
-  fetchTasks,
+  // fetchTasks,
   fetchTruckById,
   updateNotes,
   createTask,
-  updateTask,
-  deleteTask,
+  // updateTask,
+  // deleteTask,
   updateProject,
   createProduct,
   fetchProducts,
@@ -37,32 +37,40 @@ const ProjectDetails = () => {
   // const [isTasksOpen, setIsTasksOpen] = useState(false); // Toggle for Tasks section
   const [isProductsOpen, setIsProductsOpen] = useState(false); // Toggle for Products section
   const [isReusableTasksOpen, setIsReusableTasksOpen] = useState(false); // Toggle for Reusable Tasks
+  const [availableTasks, setAvailableTasks] = useState([]); // Add state for available tasks
 
   useEffect(() => {
+    const loadAvailableTasks = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/tasks/available", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch available tasks.");
+        }
+        const tasks = await response.json();
+        setAvailableTasks(tasks);
+      } catch (error) {
+        console.error("Error fetching available tasks:", error.message);
+        toast.error("Failed to load available tasks.");
+      }
+    };
+    loadAvailableTasks();
+
     const loadProjectDetails = async () => {
       try {
         const projectData = await fetchProjectById(id);
-        const productData = await fetchProducts();
-        const taskData = await fetchTasks(id);
-        // const availableReusableTasks = await fetchReusableTasks(); // Fetch reusable tasks
 
         setProject(projectData);
-        setProducts(productData);
-        setTasks(taskData);
+        setTasks(projectData.dailyTasks || []); // Set daily tasks from the project
         setChecklist(projectData.checklist || []);
 
         if (projectData.truckId) {
           const truckData = await fetchTruckById(projectData.truckId);
           setTruck(truckData);
-
-          setProject((prev) => ({
-            ...prev,
-            truckModel: truckData.model,
-            weightCapacity: truckData.weightCapacity,
-          }));
         }
-
-        loadAvailableProducts();
       } catch (error) {
         console.error("Error loading project details:", error.message);
         toast.error("Failed to load project details.");
@@ -91,6 +99,8 @@ const ProjectDetails = () => {
       }
     };
 
+    loadAvailableProducts();
+    loadAvailableTasks();
     loadProjectDetails();
     loadReusableTasks();
     loadProducts();
@@ -157,30 +167,79 @@ const ProjectDetails = () => {
     }
   };
 
-  const handleToggleTask = async (taskId, isCompleted) => {
-    try {
-      const updatedTask = await updateTask(taskId, { isCompleted });
-      setTasks((prev) =>
-        prev.map((task) => (task._id === taskId ? updatedTask : task))
+  const handleToggleTask = async (taskId) => {
+    const existingTask = tasks.find((task) => task.taskId === taskId);
+
+    let updatedTasks;
+
+    if (existingTask) {
+      // Toggle `isCompleted` for existing tasks
+      updatedTasks = tasks.map((task) =>
+        task.taskId === taskId
+          ? { ...task, isCompleted: !task.isCompleted }
+          : task
       );
-      toast.success("Task updated successfully!");
+    } else {
+      const taskToAdd = availableTasks.find((task) => task._id === taskId);
+
+      if (!taskToAdd) {
+        toast.error("Task not found.");
+        return;
+      }
+
+      updatedTasks = [
+        ...tasks,
+        { taskId: taskToAdd._id, taskName: taskToAdd.name, isCompleted: false },
+      ];
+    }
+
+    try {
+      const updatedProject = await updateProject(project._id, {
+        dailyTasks: updatedTasks,
+      });
+
+      setTasks(updatedTasks); // Update frontend state
+      setProject(updatedProject); // Sync with backend
+      toast.success(
+        existingTask ? "Task updated!" : "Task added to daily tasks!"
+      );
     } catch (error) {
-      console.error("Failed to update task:", error);
-      toast.error("Failed to update task.");
+      console.error("Failed to update daily tasks:", error);
+      toast.error("Failed to update daily tasks.");
     }
   };
 
   const handleDeleteTask = async (taskId) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+    const updatedTasks = tasks.filter((task) => task.taskId !== taskId);
+
     try {
-      await deleteTask(taskId);
-      setTasks((prev) => prev.filter((task) => task._id !== taskId));
-      toast.success("Task deleted successfully!");
+      // Save the updated dailyTasks to the backend
+      const updatedProject = await updateProject(project._id, {
+        dailyTasks: updatedTasks,
+      });
+
+      setTasks(updatedTasks); // Update state with new tasks
+      setProject(updatedProject); // Sync project state
+      toast.success("Task removed from daily list.");
     } catch (error) {
       console.error("Failed to delete task:", error);
       toast.error("Failed to delete task.");
     }
   };
+
+  // const handleDeleteTask = async (taskId) => {
+  //   if (!window.confirm("Are you sure you want to delete this task?")) return;
+  //   try {
+  //     await deleteTask(taskId);
+  //     setTasks((prev) => prev.filter((task) => task._id !== taskId));
+  //     toast.success("Task deleted successfully!");
+  //   } catch (error) {
+  //     console.error("Failed to delete task:", error);
+  //     toast.error("Failed to delete task.");
+  //   }
+  // };
 
   const handleEditClick = () => {
     setEditableProject({
@@ -257,20 +316,6 @@ const ProjectDetails = () => {
       toast.error("Failed to save checklist.");
     }
   };
-
-  // const saveChecklistToBackend = async (updatedChecklist) => {
-  //   try {
-  //     const updatedProject = await updateProject(project._id, {
-  //       ...project,
-  //       checklist: updatedChecklist,
-  //     });
-  //     setProject(updatedProject);
-  //     toast.success("Checklist saved successfully!");
-  //   } catch (error) {
-  //     console.error("Failed to save checklist:", error);
-  //     toast.error("Failed to save checklist.");
-  //   }
-  // };
 
   const handleDeleteProduct = async (productId) => {
     if (!window.confirm("Are you sure you want to delete this product?"))
@@ -777,7 +822,7 @@ const ProjectDetails = () => {
             <h2>Daily Tasks</h2>
             <ul>
               {tasks.map((task) => (
-                <li key={task._id}>
+                <li key={task.taskId}>
                   <span
                     style={{
                       textDecoration: task.isCompleted
@@ -785,16 +830,13 @@ const ProjectDetails = () => {
                         : "none",
                     }}
                   >
-                    {task.name}
+                    {task.taskName || "Unnamed Task"}{" "}
+                    {/* Fallback for missing task names */}
                   </span>
-                  <button
-                    onClick={() =>
-                      handleToggleTask(task._id, !task.isCompleted)
-                    }
-                  >
+                  <button onClick={() => handleToggleTask(task.taskId)}>
                     {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
                   </button>
-                  <button onClick={() => handleDeleteTask(task._id)}>
+                  <button onClick={() => handleDeleteTask(task.taskId)}>
                     Delete
                   </button>
                 </li>

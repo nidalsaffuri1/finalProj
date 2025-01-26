@@ -395,17 +395,50 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 //     res.status(500).json({ error: "Failed to delete project." });
 //   }
 // });
+
+// router.put("/:id", authenticateToken, async (req, res) => {
+//   try {
+//     const companyId = req.user.companyId; // Authenticated user's company ID
+//     const { checklist, ...rest } = req.body;
+
+//     // Ensure the project belongs to the authenticated company
+//     const project = await Project.findOneAndUpdate(
+//       { _id: req.params.id, companyId },
+//       { $set: { ...rest, checklist } },
+//       { new: true }
+//     ).populate("checklist.productId", "name unitPrice");
+
+//     if (!project) {
+//       return res
+//         .status(404)
+//         .json({ error: "Project not found or access denied." });
+//     }
+
+//     res.json(project);
+//   } catch (err) {
+//     console.error("Error updating project:", err.message);
+//     res.status(500).json({ error: "Failed to update project" });
+//   }
+// });
+
 router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const companyId = req.user.companyId; // Authenticated user's company ID
-    const { checklist, ...rest } = req.body;
+    const { dailyTasks, checklist, ...rest } = req.body; // Extract dailyTasks and other fields
+
+    // Validate dailyTasks format
+    if (dailyTasks && !Array.isArray(dailyTasks)) {
+      return res.status(400).json({ error: "Invalid dailyTasks format." });
+    }
 
     // Ensure the project belongs to the authenticated company
     const project = await Project.findOneAndUpdate(
       { _id: req.params.id, companyId },
-      { $set: { ...rest, checklist } },
+      { $set: { ...rest, checklist, dailyTasks } },
       { new: true }
-    ).populate("checklist.productId", "name unitPrice");
+    )
+      .populate("dailyTasks.taskId", "name") // Populate task details
+      .populate("checklist.productId", "name unitPrice"); // Populate product details
 
     if (!project) {
       return res
@@ -413,7 +446,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
         .json({ error: "Project not found or access denied." });
     }
 
-    res.json(project);
+    res.json(project); // Return the updated project
   } catch (err) {
     console.error("Error updating project:", err.message);
     res.status(500).json({ error: "Failed to update project" });

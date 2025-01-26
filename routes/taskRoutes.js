@@ -2,6 +2,8 @@ const express = require("express");
 const Task = require("../models/task");
 const ProjectStatus = require("../models/projectStatus");
 const authMiddleware = require("../middleware/authMiddltware");
+const authenticateToken = require("../middleware/authenticateToken");
+
 const router = express.Router();
 
 // Helper function to check and update project status
@@ -20,18 +22,17 @@ const updateProjectStatus = async (projectId) => {
   }
 };
 
-// router.get("/",authMiddleware , async (req, res) => {
-//   try {
-//     const { projectId } = req.query;
-//     const tasks = projectId
-//       ? await Task.find({ projectId }) // Fetch project-specific tasks
-//       : await Task.find(); // Fetch all tasks
-//     res.json(tasks);
-//   } catch (error) {
-//     console.error("Failed to fetch tasks:", error);
-//     res.status(500).json({ message: "Failed to fetch tasks." });
-//   }
-// });
+router.get("/available", authenticateToken, async (req, res) => {
+  try {
+    const companyId = req.user.companyId; // Get company ID from the token
+    const tasks = await Task.find({ companyId }); // Fetch tasks for the company
+    res.json(tasks);
+  } catch (error) {
+    console.error("Error fetching available tasks:", error.message);
+    res.status(500).json({ error: "Failed to fetch available tasks." });
+  }
+});
+
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.query;
@@ -59,26 +60,6 @@ router.get("/reusable", async (req, res) => {
   }
 });
 
-// Create a task
-// router.post("/", async (req, res) => {
-//   try {
-//     const { projectId, name } = req.body;
-
-//     if (!projectId || !name) {
-//       return res
-//         .status(400)
-//         .json({ error: "Project ID and Task name are required" });
-//     }
-
-//     const task = new Task({ projectId, name });
-//     const savedTask = await task.save();
-
-//     res.status(201).json(savedTask);
-//   } catch (err) {
-//     console.error("Error creating task:", err.message);
-//     res.status(500).json({ error: "Failed to create task" });
-//   }
-// });
 router.post("/", async (req, res) => {
   try {
     console.log("Request Body:", req.body); // Log the incoming request body
