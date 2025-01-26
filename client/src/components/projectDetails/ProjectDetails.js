@@ -6,7 +6,7 @@ import {
   // fetchTasks,
   fetchTruckById,
   updateNotes,
-  createTask,
+  // createTask,
   // updateTask,
   // deleteTask,
   updateProject,
@@ -63,9 +63,15 @@ const ProjectDetails = () => {
       try {
         const projectData = await fetchProjectById(id);
 
+        // Ensure task names are populated
+        const dailyTasks = (projectData.dailyTasks || []).map((task) => ({
+          taskId: task.taskId?._id || task.taskId,
+          taskName: task.taskName || task.taskId?.name || "Unnamed Task",
+          isCompleted: task.isCompleted,
+        }));
+
         setProject(projectData);
-        setTasks(projectData.dailyTasks || []); // Set daily tasks from the project
-        setChecklist(projectData.checklist || []);
+        setTasks(dailyTasks);
 
         if (projectData.truckId) {
           const truckData = await fetchTruckById(projectData.truckId);
@@ -81,8 +87,6 @@ const ProjectDetails = () => {
       try {
         const response = await fetch("http://localhost:5000/reusable-tasks");
         const data = await response.json();
-
-        // const tasks = await fetchReusableTasks();
         setReusableTasks(data);
       } catch (error) {
         toast.error("Failed to load reusable tasks.");
@@ -106,14 +110,36 @@ const ProjectDetails = () => {
     loadProducts();
   }, [id]);
 
+  // const handleAddReusableTaskToDaily = async (task) => {
+  //   try {
+  //     // Add the reusable task as a daily task
+  //     const newTask = await createTask({ projectId: id, name: task.name });
+  //     setTasks((prev) => [...prev, newTask]);
+  //     toast.success(`Task "${task.name}" added to daily tasks.`);
+  //   } catch (error) {
+  //     console.error("Failed to add reusable task to daily tasks:", error);
+  //     toast.error("Failed to add task.");
+  //   }
+  // };
+
   const handleAddReusableTaskToDaily = async (task) => {
     try {
-      // Add the reusable task as a daily task
-      const newTask = await createTask({ projectId: id, name: task.name });
-      setTasks((prev) => [...prev, newTask]);
+      const newTask = {
+        taskId: task._id,
+        taskName: task.name,
+        isCompleted: false,
+      };
+
+      const updatedTasks = [...tasks, newTask];
+      const updatedProject = await updateProject(project._id, {
+        dailyTasks: updatedTasks,
+      });
+
+      setTasks(updatedTasks);
+      setProject(updatedProject);
       toast.success(`Task "${task.name}" added to daily tasks.`);
     } catch (error) {
-      console.error("Failed to add reusable task to daily tasks:", error);
+      console.error("Failed to add task:", error.message);
       toast.error("Failed to add task.");
     }
   };
@@ -166,14 +192,12 @@ const ProjectDetails = () => {
       toast.error("Failed to load available products.");
     }
   };
-
   const handleToggleTask = async (taskId) => {
     const existingTask = tasks.find((task) => task.taskId === taskId);
 
     let updatedTasks;
 
     if (existingTask) {
-      // Toggle `isCompleted` for existing tasks
       updatedTasks = tasks.map((task) =>
         task.taskId === taskId
           ? { ...task, isCompleted: !task.isCompleted }
@@ -198,8 +222,15 @@ const ProjectDetails = () => {
         dailyTasks: updatedTasks,
       });
 
-      setTasks(updatedTasks); // Update frontend state
-      setProject(updatedProject); // Sync with backend
+      // Ensure we merge the updated project data with existing populated data
+      setProject((prevProject) => ({
+        ...prevProject,
+        dailyTasks: updatedProject.dailyTasks, // Update dailyTasks only
+        customerId: prevProject.customerId, // Preserve populated customer data
+        truckId: prevProject.truckId, // Preserve populated truck data
+      }));
+
+      setTasks(updatedTasks); // Update tasks state
       toast.success(
         existingTask ? "Task updated!" : "Task added to daily tasks!"
       );
@@ -243,15 +274,15 @@ const ProjectDetails = () => {
 
   const handleEditClick = () => {
     setEditableProject({
-      ...project,
+      serialNumber: project.serialNumber || "",
       customerName: project.customerId?.name || "",
       customerEmail: project.customerId?.email || "",
       customerPhone: project.customerId?.phone || "",
       customerAddress: project.customerId?.address || "",
-      truckModel: project.truckModel || truck?.model || "",
-      weightCapacity: project.weightCapacity || truck?.weightCapacity || "",
+      truckModel: truck?.model || "",
+      weightCapacity: truck?.weightCapacity || "",
+      dynamicFields: project.dynamicFields || [],
     });
-    console.log("Editable Project:", editableProject); // Add this line
     setIsEditing(true);
   };
 
@@ -271,30 +302,27 @@ const ProjectDetails = () => {
     }
   };
 
-  const handleDynamicFieldChange = (index, value) => {
-    const updatedFields = [...editableProject.dynamicFields];
-    updatedFields[index].value = value;
+  const handleDynamicFieldChange = (index, newValue) => {
+    const updatedFields = [...(project.dynamicFields || [])];
+    updatedFields[index].value = newValue;
+
     setEditableProject((prev) => ({
       ...prev,
       dynamicFields: updatedFields,
     }));
   };
+
   const handleSaveChanges = async () => {
     try {
       const updatedProject = {
         ...editableProject,
-        customerId: project.customerId?._id,
-        truckId: project.truckId,
-        customerName: editableProject.customerName, // Include customer details
-        customerEmail: editableProject.customerEmail,
-        customerPhone: editableProject.customerPhone,
-        customerAddress: editableProject.customerAddress,
-        truckModel: editableProject.truckModel,
-        weightCapacity: editableProject.weightCapacity,
+        customerId: project.customerId?._id || editableProject.customerId, // Use existing ID or editableProject value
+        truckId: project.truckId?._id || editableProject.truckId, // Use existing ID or editableProject value
       };
 
       const result = await updateProject(project._id, updatedProject);
-      setProject(result); // Update state with backend response
+
+      setProject(result); // Sync updated project with frontend
       setIsEditing(false);
       toast.success("Project updated successfully!");
     } catch (error) {
@@ -429,16 +457,11 @@ const ProjectDetails = () => {
 
     try {
       const updatedProject = await updateProject(project._id, {
-        dynamicFields: updatedFields, // Send only dynamicFields
+        dynamicFields: updatedFields, // Send updated dynamicFields only
       });
 
-      // Update project state without overriding truck or customer data
-      setProject((prev) => ({
-        ...prev,
-        dynamicFields: updatedProject.dynamicFields,
-      }));
-
-      setNewField({ name: "", value: "" });
+      setProject(updatedProject); // Sync with backend response
+      setNewField({ name: "", value: "" }); // Reset input fields
       toast.success("Information added successfully!");
     } catch (error) {
       console.error("Failed to add information:", error.message);
@@ -467,23 +490,14 @@ const ProjectDetails = () => {
   };
 
   const handleSaveNotes = async () => {
-    if (!project.notes.trim()) {
-      return toast.error("Notes cannot be empty.");
-    }
-
     try {
       const updatedProject = await updateNotes(project._id, project.notes);
 
-      // Preserve customer data and other project details
-      setProject((prev) => ({
-        ...prev,
-        notes: updatedProject.notes, // Update only the notes
-      }));
-
+      setProject((prev) => ({ ...prev, notes: updatedProject.notes })); // Update notes in the state
       toast.success("Notes updated successfully!");
     } catch (error) {
-      console.error("Error saving notes:", error);
-      toast.error("Failed to save notes.");
+      console.error("Failed to update notes:", error);
+      toast.error("Failed to update notes.");
     }
   };
 
@@ -602,14 +616,12 @@ const ProjectDetails = () => {
           </li>
 
           {/* Dynamic Fields */}
-          {editableProject.dynamicFields?.map((field, index) => (
-            <li key={field._id || `${field.name}_${index}`}>
-              {/* Unique keys: use `_id` or fallback to name + index */}
+          {(project.dynamicFields || []).map((field, index) => (
+            <li key={index}>
               <strong>{field.name}:</strong>{" "}
               {isEditing ? (
                 <input
                   type="text"
-                  name={`dynamic_${index}`}
                   value={field.value || ""}
                   onChange={(e) =>
                     handleDynamicFieldChange(index, e.target.value)
@@ -782,7 +794,7 @@ const ProjectDetails = () => {
                 <ul>
                   {reusableTasks.map((task) => (
                     <li
-                      key={task._id}
+                      key={task._id} // Ensure unique key
                       onClick={() => handleAddReusableTaskToDaily(task)}
                       className="dropdown-item"
                     >
@@ -790,7 +802,7 @@ const ProjectDetails = () => {
                       <button
                         className="delete-btn"
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering the parent onClick
+                          e.stopPropagation(); // Prevent parent click
                           handleDeleteReusableTask(task._id);
                         }}
                       >
@@ -822,7 +834,9 @@ const ProjectDetails = () => {
             <h2>Daily Tasks</h2>
             <ul>
               {tasks.map((task) => (
-                <li key={task.taskId}>
+                <li key={task.taskId || task._id}>
+                  {" "}
+                  {/* Ensure unique key */}
                   <span
                     style={{
                       textDecoration: task.isCompleted
@@ -831,7 +845,7 @@ const ProjectDetails = () => {
                     }}
                   >
                     {task.taskName || "Unnamed Task"}{" "}
-                    {/* Fallback for missing task names */}
+                    {/* Fallback to "Unnamed Task" */}
                   </span>
                   <button onClick={() => handleToggleTask(task.taskId)}>
                     {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}

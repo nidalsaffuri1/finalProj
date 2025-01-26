@@ -11,7 +11,6 @@ const productRoutes = require("./routes/productRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const projectStatusRoutes = require("./routes/projectStatusRoutes");
 const reusableTasksRoutes = require("./routes/reusableTasks");
-const authRoutes = require("./routes/auth");
 
 dotenv.config();
 

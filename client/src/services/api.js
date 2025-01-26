@@ -120,20 +120,17 @@ export const createProject = async (projectData) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Include token for authentication
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(projectData),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to create project, response:", errorText);
       throw new Error(`Failed to create project: ${errorText}`);
     }
 
-    const data = await response.json();
-    console.log("Created Project Response:", data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Error creating project:", error.message);
     throw error;
@@ -142,29 +139,26 @@ export const createProject = async (projectData) => {
 
 // Update a project
 
-export const updateProject = async (projectId, updatedData) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No token available");
-  }
-
+export const updateProject = async (projectId, projectData) => {
   try {
-    const response = await axios.put(
-      `${API_URL}projects/${projectId}`,
-      updatedData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}projects/${projectId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include the token
+      },
+      body: JSON.stringify(projectData),
+    });
 
-    return response.data; // Return the updated project
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to update project: ${errorText}`);
+    }
+
+    return await response.json();
   } catch (error) {
-    console.error(
-      "Error updating project:",
-      error.response?.data || error.message
-    );
+    console.error("Error updating project:", error.message);
     throw error;
   }
 };
@@ -181,26 +175,32 @@ export const deleteProduct = async (productId) => {
 };
 
 // Delete a project
-export const deleteProject = async (id) => {
+export const deleteProject = async (projectId) => {
   try {
-    const response = await fetch(`${API_URL}projects/${id}`, {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token available");
+    }
+
+    const response = await fetch(`${API_URL}projects/${projectId}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`, // Include the token
+      },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to delete project:", errorText);
       throw new Error(`Failed to delete project: ${errorText}`);
     }
 
-    const data = await response.json();
-    console.log("Deleted Project Response:", data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Error deleting project:", error.message);
     throw error;
   }
 };
+
 export const createProduct = async (productData) => {
   try {
     const token = localStorage.getItem("token");
@@ -258,22 +258,22 @@ export const fetchCustomerById = async (customerId) => {
 // Update project notes
 export const updateNotes = async (projectId, notes) => {
   try {
-    const response = await fetch(`${API_URL}${projectId}/notes`, {
+    const token = localStorage.getItem("token"); // Get token
+    const response = await fetch(`${API_URL}projects/${projectId}/notes`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include token for authentication
       },
       body: JSON.stringify({ notes }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to update notes:", errorText);
       throw new Error(`Failed to update notes: ${errorText}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Error in updateNotes:", error.message);
     throw error;

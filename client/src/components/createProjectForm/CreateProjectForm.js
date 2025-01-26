@@ -56,10 +56,11 @@ const CreateProjectForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const projectData = {
         ...formData,
-        customerId: customerId || undefined, // Pass customerId if available
+        customerId: customerId || undefined, // Use existing customerId or leave undefined
       };
 
       // Remove checklist if empty
@@ -67,12 +68,17 @@ const CreateProjectForm = () => {
         delete projectData.checklist;
       }
 
+      // Log final data to submit
       console.log("Submitting Project Data:", projectData);
-      await createProject(projectData); // Call API to create the project
 
+      // Call API to create the project
+      const createdProject = await createProject(projectData);
+
+      console.log("Created Project:", createdProject);
       setMessage("Project created successfully!");
+
+      // Reset form only if no existing customer
       if (!customerId) {
-        // Reset form only if it's a new customer
         setFormData({
           serialNumber: "",
           customerName: "",
@@ -83,6 +89,8 @@ const CreateProjectForm = () => {
           truckRegistrationNumber: "",
           truckWeightCapacity: "",
           notes: "",
+          dynamicFields: [],
+          checklist: [],
         });
       }
     } catch (error) {

@@ -43,5 +43,14 @@ const ProjectSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Virtual field for task status
+ProjectSchema.virtual("hasIncompleteTasks").get(function () {
+  return this.dailyTasks.some((task) => !task.isCompleted);
+});
+
+// Enable virtuals in JSON and Object output
+ProjectSchema.set("toJSON", { virtuals: true });
+ProjectSchema.set("toObject", { virtuals: true });
+
 module.exports =
   mongoose.models.Project || mongoose.model("Project", ProjectSchema);
