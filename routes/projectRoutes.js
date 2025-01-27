@@ -140,6 +140,8 @@ router.get("/:id", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch project by ID" });
   }
 });
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId; // Add this line
 
 router.post("/", authenticateToken, async (req, res) => {
   try {

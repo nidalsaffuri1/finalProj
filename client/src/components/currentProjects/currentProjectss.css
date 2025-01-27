@@ -135,3 +135,18 @@ tr:hover {
   background-color: #bdc3c7;
   cursor: not-allowed;
 }
+
+.navigation-button button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+.navigation-button button:hover {
+  background-color: #45a049;
+}

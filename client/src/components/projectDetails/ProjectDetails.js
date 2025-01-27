@@ -3,18 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import {
   fetchProjectById,
-  // fetchTasks,
   fetchTruckById,
   updateNotes,
-  // createTask,
-  // updateTask,
-  // deleteTask,
   updateProject,
   createProduct,
   fetchProducts,
   deleteProduct,
   deleteReusableTask,
-  // fetchReusableTasks, // Newly added function
 } from "../../services/api";
 import { toast } from "react-toastify";
 import "./projectDetailss.css";
@@ -27,14 +22,12 @@ const ProjectDetails = () => {
   const [tasks, setTasks] = useState([]);
   const [reusableTasks, setReusableTasks] = useState([]); // Reusable tasks
   const [newTaskName, setNewTaskName] = useState("");
-  // const [newReusableTaskName, setNewReusableTaskName] = useState("");
   const [newField, setNewField] = useState({ name: "", value: "" });
   const [checklist, setChecklist] = useState([]);
   const [products, setProducts] = useState([]); // For right block
   const [newProduct, setNewProduct] = useState({ name: "", price: "" });
   const [isEditing, setIsEditing] = useState(false); // Toggle Edit Mode
   const [editableProject, setEditableProject] = useState({}); // Temporary editable project data
-  // const [isTasksOpen, setIsTasksOpen] = useState(false); // Toggle for Tasks section
   const [isProductsOpen, setIsProductsOpen] = useState(false); // Toggle for Products section
   const [isReusableTasksOpen, setIsReusableTasksOpen] = useState(false); // Toggle for Reusable Tasks
   const [availableTasks, setAvailableTasks] = useState([]); // Add state for available tasks
@@ -109,18 +102,6 @@ const ProjectDetails = () => {
     loadReusableTasks();
     loadProducts();
   }, [id]);
-
-  // const handleAddReusableTaskToDaily = async (task) => {
-  //   try {
-  //     // Add the reusable task as a daily task
-  //     const newTask = await createTask({ projectId: id, name: task.name });
-  //     setTasks((prev) => [...prev, newTask]);
-  //     toast.success(`Task "${task.name}" added to daily tasks.`);
-  //   } catch (error) {
-  //     console.error("Failed to add reusable task to daily tasks:", error);
-  //     toast.error("Failed to add task.");
-  //   }
-  // };
 
   const handleAddReusableTaskToDaily = async (task) => {
     try {
@@ -259,18 +240,6 @@ const ProjectDetails = () => {
       toast.error("Failed to delete task.");
     }
   };
-
-  // const handleDeleteTask = async (taskId) => {
-  //   if (!window.confirm("Are you sure you want to delete this task?")) return;
-  //   try {
-  //     await deleteTask(taskId);
-  //     setTasks((prev) => prev.filter((task) => task._id !== taskId));
-  //     toast.success("Task deleted successfully!");
-  //   } catch (error) {
-  //     console.error("Failed to delete task:", error);
-  //     toast.error("Failed to delete task.");
-  //   }
-  // };
 
   const handleEditClick = () => {
     setEditableProject({

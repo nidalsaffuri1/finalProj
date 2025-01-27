@@ -93,46 +93,13 @@ const CreateProjectForm = () => {
           checklist: [],
         });
       }
+      console.log("Customer ID:", customerId);
+      console.log("Submitting Project Data:", projectData);
     } catch (error) {
       console.error("Error creating project:", error);
       setMessage("Failed to create project. Please try again.");
     }
   };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const projectData = {
-  //       ...formData,
-  //       customerId: customerId || undefined, // Pass customerId if available
-  //     };
-
-  //     console.log("Submitting Project Data:", projectData);
-
-  //     await createProject(projectData); // Call API to create the project
-
-  //     setMessage("Project created successfully!");
-
-  //     if (!customerId) {
-  //       // Reset form only if it's a new customer
-  //       setFormData({
-  //         serialNumber: "",
-  //         customerName: "",
-  //         customerEmail: "",
-  //         customerPhone: "",
-  //         customerAddress: "",
-  //         truckModel: "",
-  //         truckRegistrationNumber: "",
-  //         truckWeightCapacity: "",
-  //         notes: "",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error creating project:", error);
-  //     setMessage("Failed to create project. Please try again.");
-  //   }
-  // };
-
   return (
     <div className="container">
       <div className="project-details">

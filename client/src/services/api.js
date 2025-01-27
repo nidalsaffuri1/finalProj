@@ -35,35 +35,6 @@ export const fetchProjects = async (
     throw error; // Throw the error to handle it in the caller
   }
 };
-// export const fetchProjects = async (
-//   page = 1,
-//   limit = 10,
-//   sortBy = "createdAt",
-//   order = "desc",
-//   search = ""
-// ) => {
-//   try {
-//     const url = `${API_URL}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(
-//       search
-//     )}`;
-//     console.log("Fetching Projects from URL:", url);
-
-//     const response = await fetch(url);
-
-//     if (!response.ok) {
-//       const errorText = await response.text();
-//       console.error("Error Response:", errorText);
-//       throw new Error(`Failed to fetch projects: ${errorText}`);
-//     }
-
-//     const data = await response.json();
-//     console.log("Projects Response Data:", data);
-//     return data;
-//   } catch (error) {
-//     console.error("Error fetching projects:", error.message);
-//     throw error;
-//   }
-// };
 
 // Fetch project by ID
 export const fetchProjectById = async (id) => {

@@ -1,0 +1,113 @@
+/* General Styles */
+body {
+    font-family: "Poppins", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  /* Login Container */
+  .login-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title */
+  .login-title {
+    font-size: 28px;
+    color: #2c3e50;
+    margin-bottom: 10px;
+  }
+  
+  /* Subtitle */
+  .login-subtitle {
+    font-size: 16px;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+  }
+  
+  /* Form */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .login-input {
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  .login-input:focus {
+    border-color: #3498db;
+  }
+  
+  /* Button */
+  .login-btn {
+    background-color: #3498db;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .login-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+  }
+  
+  .login-btn:active {
+    background-color: #1c6692;
+    transform: translateY(0);
+  }
+  
+  .login-btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+  }
+  
+  /* Error Message */
+  .login-error {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .login-container {
+      padding: 20px;
+    }
+  
+    .login-title {
+      font-size: 24px;
+    }
+  
+    .login-subtitle {
+      font-size: 14px;
+    }
+  
+    .login-btn {
+      font-size: 14px;
+      padding: 10px;
+    }
+  }
+  

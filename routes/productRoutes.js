@@ -34,16 +34,6 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// Get all products
-// router.get("/", authMiddleware, async (req, res) => {
-//   try {
-//     const products = await Product.find();
-//     res.json(products);
-//   } catch (err) {
-//     console.error("Error fetching products:", err.message);
-//     res.status(500).json({ error: "Failed to fetch products" });
-//   }
-// });
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const companyId = req.user.companyId; // Extract companyId from the token
