@@ -9,18 +9,48 @@ const ProjectSchema = new mongoose.Schema({
   },
   truckId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Truck", // Reference to Truck schema
+    ref: "Truck",
     required: false,
   },
-  phoneNumber: { type: String, required: false },
   notes: { type: String, default: "" },
-  createdAt: { type: Date, default: Date.now },
+  checklist: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      productName: { type: String },
+      price: { type: Number },
+      quantity: { type: Number, default: 1 },
+      checked: { type: Boolean, default: false },
+    },
+  ],
   dynamicFields: [
     {
       name: { type: String, required: true },
       value: { type: String, required: false },
     },
   ],
+  dailyTasks: [
+    {
+      taskId: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
+      taskName: { type: String },
+      isCompleted: { type: Boolean, default: false },
+    },
+  ],
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Company",
+    required: true,
+  },
+  createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Project", ProjectSchema);
+// Virtual field for task status
+ProjectSchema.virtual("hasIncompleteTasks").get(function () {
+  return this.dailyTasks.some((task) => !task.isCompleted);
+});
+
+// Enable virtuals in JSON and Object output
+ProjectSchema.set("toJSON", { virtuals: true });
+ProjectSchema.set("toObject", { virtuals: true });
+
+module.exports =
+  mongoose.models.Project || mongoose.model("Project", ProjectSchema);

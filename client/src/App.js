@@ -1,57 +1,97 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import "./styles.css"; // Import the styles
-import CreateProjectForm from "./components/CreateProjectForm";
-import CurrentProjects from "./components/CurrentProjects";
-import ProjectDetails from "./components/ProjectDetails";
+import "./style.css";
+import "./components/homePage/homePagee.css";
+import LoginPage from "./pages/loginPage";
+import Dashboard from "./pages/dashboard";
+import PrivateRoute from "./components/privateRoute";
+import CreateProjectForm from "./components/createProjectForm/CreateProjectForm";
+import CurrentProjects from "./components/currentProjects/CurrentProjects";
+import ProjectDetails from "./components/projectDetails/ProjectDetails";
 import { ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-const HomePage = () => (
-  <div>
-    <h1>Welcome to Truck Management System</h1>
-    <div>
-      <Link to="/create-project">
-        <button>Create Project</button>
-      </Link>
-      <Link to="/current-projects">
-        <button>Current Projects</button>
-      </Link>
+const HomePage = () => {
+  const navigate = useNavigate();
+  const companyName = localStorage.getItem("companyName");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Clear token from local storage
+    localStorage.removeItem("companyName"); // Clear companyName from local storage
+    navigate("/login"); // Redirect to login page
+  };
+
+  return (
+    <div className="homepage-container">
+      <h1 className="homepage-title">
+        Welcome, {companyName}
+        <br /> to Truck Management System
+      </h1>
+      <h3 className="homepage-subtitle">
+        Efficiently manage your trucks, tasks, and projects.
+      </h3>
+      <div className="button-group">
+        <Link to="/create-project">
+          <button className="primary-btn">Create Project</button>
+        </Link>
+        <Link to="/current-projects">
+          <button className="secondary-btn">Current Projects</button>
+        </Link>
+      </div>
+      <button onClick={handleLogout} className="logout-btn">
+        Logout
+      </button>
     </div>
-  </div>
-);
-
-// const CreateProject = () => (
-//   <div>
-//     <h1>Create Project Page</h1>
-//     <p>This is where the form to create a new project will go.</p>
-//   </div>
-// );
-const CreateProject = () => (
-  <div>
-    <CreateProjectForm /> {/* Use the form component here */}
-  </div>
-);
-
-const CurrentProjectsPage = () => (
-  <div>
-    <CurrentProjects />
-  </div>
-);
-
-// Inside <Routes> in App.js:
-<Route path="/current-projects" element={<CurrentProjectsPage />} />;
-
-<Route path="/projects/:id" element={<ProjectDetails />} />;
+  );
+};
 
 const App = () => {
   return (
     <Router>
       <ToastContainer />
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/create-project" element={<CreateProject />} />
-        <Route path="/current-projects" element={<CurrentProjects />} />
-        <Route path="/projects/:id" element={<ProjectDetails />} />{" "}
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/current-projects"
+          element={
+            <PrivateRoute>
+              <CurrentProjects />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/create-project"
+          element={
+            <PrivateRoute>
+              <CreateProjectForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/projects/:id"
+          element={
+            <PrivateRoute>
+              <ProjectDetails />
+            </PrivateRoute>
+          }
+        />
+        {/* Protect the home page */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <HomePage />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

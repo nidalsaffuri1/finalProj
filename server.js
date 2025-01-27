@@ -1,13 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+require("dotenv").config();
 const cors = require("cors");
+const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/projectRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const truckRoutes = require("./routes/truckRoutes");
 const productRoutes = require("./routes/productRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const projectStatusRoutes = require("./routes/projectStatusRoutes");
+const reusableTasksRoutes = require("./routes/reusableTasks");
 
 dotenv.config();
 
@@ -24,12 +27,14 @@ app.use(
 );
 
 // Routes
+app.use("/reusable-tasks", reusableTasksRoutes);
 app.use("/projects", projectRoutes);
 app.use("/projectStatus", projectStatusRoutes);
 app.use("/products", productRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/trucks", truckRoutes);
 app.use("/customers", customerRoutes);
+app.use("/auth", authRoutes);
 
 // Connect to MongoDB
 mongoose
