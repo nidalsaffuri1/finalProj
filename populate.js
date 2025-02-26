@@ -7,9 +7,9 @@ const Product = require("./models/product"); // Adjust the path if necessary
 const prepopulateProducts = async (companyId) => {
   try {
     const defaultProducts = [
-      { name: "Product A", unitPrice: 100, companyId },
-      { name: "Product B", unitPrice: 200, companyId },
-      { name: "Product C", unitPrice: 300, companyId },
+      { name: "Engine Oil", unitPrice: 100, companyId },
+      { name: "Tires", unitPrice: 200, companyId },
+      { name: "Brake Pads", unitPrice: 300, companyId },
     ];
 
     // Insert default products into the database
